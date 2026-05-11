@@ -1,9 +1,9 @@
 services:
   - type: web
     name: wasteless
-    env: node
-    buildCommand: npm run build
-    startCommand: npm start
+    runtime: node
+    buildCommand: cd server && npm install && cd ../client && npm install && npm run build
+    startCommand: node server/index.js
     envVars:
       - key: NODE_ENV
         value: production
