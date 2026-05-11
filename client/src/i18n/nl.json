@@ -1,0 +1,126 @@
+{
+  "nav": {
+    "inventory": "Voorraad", "recipes": "Recepten", "shopping": "Boodschappen",
+    "stats": "Statistieken", "household": "Huishouden", "add": "+ Toevoegen", "bulk": "Bulk",
+    "receipt": "Bon", "logout": "Uitloggen"
+  },
+  "dashboard": {
+    "title": "Voorraad",
+    "search": "Zoek items…",
+    "sort": { "expiry": "Vervaldatum", "name": "Naam (A–Z)", "category": "Categorie", "added": "Recent toegevoegd" },
+    "filter": { "all": "Alles", "expiring": "Verloopt", "fresh": "Vers" },
+    "empty": "Je voorraad is leeg.",
+    "noMatch": "Geen items gevonden voor \"{{query}}\"",
+    "addFirst": "Voeg je eerste item toe",
+    "expired_one": "⚠️ {{count}} item is verlopen — overweeg het te verwijderen.",
+    "expired_other": "⚠️ {{count}} items zijn verlopen — overweeg ze te verwijderen.",
+    "expiring_one": "🕐 {{count}} item verloopt binnen 3 dagen: {{names}}",
+    "expiring_other": "🕐 {{count}} items verlopen binnen 3 dagen: {{names}}"
+  },
+  "item": {
+    "expiresIn_one": "{{count}} dag over",
+    "expiresIn_other": "{{count}} dagen over",
+    "expiresToday": "Verloopt vandaag",
+    "expiresTomorrow": "Verloopt morgen",
+    "expiredAgo_one": "{{count}} dag geleden verlopen",
+    "expiredAgo_other": "{{count}} dagen geleden verlopen",
+    "usedUp": "Op?",
+    "consumed": "✓ Geconsumeerd",
+    "wasted": "✗ Verspild",
+    "keep": "Bewaren",
+    "nutrition": "Voedingswaarden",
+    "hideNutrition": "Verbergen"
+  },
+  "nutrition": {
+    "per100g": "Per 100g",
+    "calories": "Calorieën", "protein": "Eiwit", "carbs": "Koolhydraten",
+    "fat": "Vet", "fiber": "Vezels", "salt": "Zout",
+    "kcal": "kcal", "g": "g"
+  },
+  "add": {
+    "title": "Item toevoegen", "scan": "📷 Barcode scannen", "cancelScan": "Scan annuleren",
+    "lookingUp": "Product opzoeken…", "cached": "⚡ Geladen uit cache",
+    "name": "Naam", "namePlaceholder": "bijv. Volle melk",
+    "category": "Categorie", "categoryPlaceholder": "bijv. Zuivel",
+    "expiry": "Vervaldatum", "quantity": "Hoeveelheid", "unit": "Eenheid",
+    "unitPlaceholder": "stuk, L, kg…", "price": "Prijs (€)",
+    "barcode": "Barcode", "notes": "Notities", "notesPlaceholder": "bijv. Geopend, bewaar in koelkast",
+    "save": "Item opslaan", "saving": "Opslaan…", "cancel": "Annuleren"
+  },
+  "bulk": {
+    "title": "Bulk toevoegen", "saveAll": "Alles opslaan ({{count}})",
+    "addManually": "Handmatig toevoegen", "addNext": "Toevoegen & volgende scannen",
+    "queue": "Wachtrij ({{count}})", "cancel": "Annuleren", "saving": "Opslaan…"
+  },
+  "receipt": {
+    "title": "Bon scannen",
+    "subtitle": "Maak een foto van je kassabon om items in bulk toe te voegen",
+    "capture": "📄 Foto van bon maken", "orUpload": "of selecteer een afbeeldingsbestand",
+    "processing": "Bon lezen… {{progress}}%",
+    "downloading": "OCR-engine downloaden…",
+    "convertingPdf": "PDF omzetten…",
+    "found": "{{count}} items gevonden — selecteer welke je wilt toevoegen",
+    "notFound": "Geen items gevonden. Probeer een duidelijkere, goed belichte foto.",
+    "name": "Itemnaam", "price": "Prijs",
+    "selectAll": "Alles selecteren", "deselectAll": "Alles deselecteren",
+    "expiry": "Vervaldatum",
+    "save": "Geselecteerde toevoegen ({{count}})", "saving": "Opslaan…",
+    "back": "← Terug", "rawText": "Ruwe tekst (debug)"
+  },
+  "auth": {
+    "welcomeBack": "Welkom terug", "signInSubtitle": "Inloggen bij je WasteLess account",
+    "email": "E-mail", "password": "Wachtwoord", "name": "Naam",
+    "signIn": "Inloggen", "signingIn": "Inloggen…",
+    "noAccount": "Geen account?", "createOne": "Maak er een aan",
+    "createAccount": "Account aanmaken", "startToday": "Begin vandaag met minder voedselverspilling",
+    "alreadyHaveAccount": "Al een account?", "signInLink": "Inloggen",
+    "creating": "Account aanmaken…", "minPassword": "Wachtwoord moet minimaal 6 tekens zijn"
+  },
+  "stats": {
+    "title": "Je statistieken", "consumed": "Items geconsumeerd", "wasted": "Items verspild",
+    "savedRate": "Voedsel bespaard", "saved": "bespaard", "lost": "verspild", "tracked": "bijgehouden",
+    "noData": "Nog geen data — verwijder items als je ze opmaakt of weggooit om bij te houden.",
+    "monthly": "Maandelijks overzicht", "count": "Aantal", "value": "Waarde (€)"
+  },
+  "recipes": {
+    "title": "Receptsuggesties", "basedOn": "Gebaseerd op items die binnenkort verlopen:",
+    "noItems": "Geen items die binnen 7 dagen verlopen — niets om recepten voor te suggereren.",
+    "noRecipes": "Geen recepten gevonden. Voeg meer items toe aan je voorraad."
+  },
+  "shopping": {
+    "title": "Boodschappenlijst", "done": "{{done}}/{{total}} klaar",
+    "needsRestocking": "Aanvullen nodig", "myList": "Mijn lijst",
+    "addPlaceholder": "Item toevoegen…", "add": "Toevoegen",
+    "outOfStock": "uitverkocht", "expired": "verlopen",
+    "empty": "Niets te kopen — je voorraad is goed gevuld!",
+    "viewInventory": "Bekijk voorraad"
+  },
+  "household": {
+    "title": "Huishouden", "subtitle": "Deel je voedselvoorraad met familie of huisgenoten",
+    "owner": "Eigenaar:", "leave": "Verlaten",
+    "leaveConfirm": "Dit huishouden verlaten? Je items blijven maar worden privé.",
+    "inviteCode": "Uitnodigingscode", "copy": "Kopiëren", "copied": "✓ Gekopieerd",
+    "inviteHint": "Deel deze code zodat anderen je huishouden kunnen toetreden.",
+    "members": "Leden ({{count}})", "ownerBadge": "Eigenaar",
+    "create": "Huishouden aanmaken", "createDesc": "Start een nieuwe gedeelde voorraad voor thuis.",
+    "householdName": "Naam huishouden", "namePlaceholder": "bijv. Ons Huis",
+    "createBtn": "Huishouden aanmaken", "or": "of",
+    "join": "Huishouden toetreden", "joinDesc": "Voer een uitnodigingscode in van iemand in je huis.",
+    "codeLabel": "Uitnodigingscode", "codePlaceholder": "bijv. ABC123", "joinBtn": "Toetreden"
+  },
+  "onboarding": {
+    "step1Icon": "🌱", "step1Title": "Welkom bij WasteLess",
+    "step1Desc": "Bijhouden wat er in je koelkast, vriezer en voorraadkast zit — zodat je altijd weet wat er bijna verloopt.",
+    "step2Icon": "📷", "step2Title": "Scannen om items toe te voegen",
+    "step2Desc": "Richt je camera op een barcode en productinformatie wordt automatisch ingevuld. Stel de vervaldatum in en klaar.",
+    "step3Icon": "⏰", "step3Title": "Gebruik voedsel voordat het slecht wordt",
+    "step3Desc": "Ontvang verloopmeldingen, receptsuggesties en een slimme boodschappenlijst. Gooi minder weg, bespaar meer.",
+    "back": "Terug", "next": "Volgende", "getStarted": "Aan de slag"
+  },
+  "edit": {
+    "title": "Item bewerken", "name": "Naam", "category": "Categorie",
+    "expiry": "Vervaldatum", "quantity": "Hoeveelheid", "unit": "Eenheid", "notes": "Notities",
+    "save": "Wijzigingen opslaan", "saving": "Opslaan…", "cancel": "Annuleren"
+  },
+  "common": { "loading": "Laden…", "error": "Er is iets misgegaan" }
+}

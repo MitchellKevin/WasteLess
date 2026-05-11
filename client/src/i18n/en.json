@@ -1,0 +1,126 @@
+{
+  "nav": {
+    "inventory": "Inventory", "recipes": "Recipes", "shopping": "Shopping",
+    "stats": "Stats", "household": "Household", "add": "+ Add", "bulk": "Bulk",
+    "receipt": "Receipt", "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Inventory",
+    "search": "Search items…",
+    "sort": { "expiry": "Expiry date", "name": "Name (A–Z)", "category": "Category", "added": "Recently added" },
+    "filter": { "all": "All", "expiring": "Expiring", "fresh": "Fresh" },
+    "empty": "Your inventory is empty.",
+    "noMatch": "No items matching \"{{query}}\"",
+    "addFirst": "Add your first item",
+    "expired_one": "⚠️ {{count}} item has expired — consider removing it.",
+    "expired_other": "⚠️ {{count}} items have expired — consider removing them.",
+    "expiring_one": "🕐 {{count}} item expiring within 3 days: {{names}}",
+    "expiring_other": "🕐 {{count}} items expiring within 3 days: {{names}}"
+  },
+  "item": {
+    "expiresIn_one": "{{count}} day left",
+    "expiresIn_other": "{{count}} days left",
+    "expiresToday": "Expires today",
+    "expiresTomorrow": "Expires tomorrow",
+    "expiredAgo_one": "Expired {{count}} day ago",
+    "expiredAgo_other": "Expired {{count}} days ago",
+    "usedUp": "Used up?",
+    "consumed": "✓ Consumed",
+    "wasted": "✗ Wasted",
+    "keep": "Keep",
+    "nutrition": "Nutrition",
+    "hideNutrition": "Hide"
+  },
+  "nutrition": {
+    "per100g": "Per 100g",
+    "calories": "Calories", "protein": "Protein", "carbs": "Carbs",
+    "fat": "Fat", "fiber": "Fiber", "salt": "Salt",
+    "kcal": "kcal", "g": "g"
+  },
+  "add": {
+    "title": "Add Item", "scan": "📷 Scan Barcode", "cancelScan": "Cancel scan",
+    "lookingUp": "Looking up product…", "cached": "⚡ Loaded from cache",
+    "name": "Name", "namePlaceholder": "e.g. Whole milk",
+    "category": "Category", "categoryPlaceholder": "e.g. Dairy",
+    "expiry": "Expiry date", "quantity": "Quantity", "unit": "Unit",
+    "unitPlaceholder": "item, L, kg…", "price": "Price (€)",
+    "barcode": "Barcode", "notes": "Notes", "notesPlaceholder": "e.g. Opened, store in fridge",
+    "save": "Save item", "saving": "Saving…", "cancel": "Cancel"
+  },
+  "bulk": {
+    "title": "Bulk Add", "saveAll": "Save all ({{count}})",
+    "addManually": "Add manually instead", "addNext": "Add & scan next",
+    "queue": "Queue ({{count}})", "cancel": "Cancel", "saving": "Saving…"
+  },
+  "receipt": {
+    "title": "Scan Receipt",
+    "subtitle": "Take a photo of your grocery receipt to bulk-add items",
+    "capture": "📄 Take receipt photo", "orUpload": "or select an image file",
+    "processing": "Reading receipt… {{progress}}%",
+    "downloading": "Downloading OCR engine…",
+    "convertingPdf": "Converting PDF…",
+    "found": "Found {{count}} items — select which to add",
+    "notFound": "No items detected. Try a clearer, well-lit photo.",
+    "name": "Item name", "price": "Price",
+    "selectAll": "Select all", "deselectAll": "Deselect all",
+    "expiry": "Expiry date",
+    "save": "Add selected ({{count}})", "saving": "Saving…",
+    "back": "← Back", "rawText": "Raw text (debug)"
+  },
+  "auth": {
+    "welcomeBack": "Welcome back", "signInSubtitle": "Sign in to your WasteLess account",
+    "email": "Email", "password": "Password", "name": "Name",
+    "signIn": "Sign in", "signingIn": "Signing in…",
+    "noAccount": "No account?", "createOne": "Create one",
+    "createAccount": "Create account", "startToday": "Start reducing your food waste today",
+    "alreadyHaveAccount": "Already have an account?", "signInLink": "Sign in",
+    "creating": "Creating account…", "minPassword": "Password must be at least 6 characters"
+  },
+  "stats": {
+    "title": "Your Stats", "consumed": "Items consumed", "wasted": "Items wasted",
+    "savedRate": "Food saved rate", "saved": "saved", "lost": "lost", "tracked": "tracked",
+    "noData": "No data yet — remove items from your inventory as you use or waste them to start tracking.",
+    "monthly": "Monthly breakdown", "count": "Count", "value": "Value (€)"
+  },
+  "recipes": {
+    "title": "Recipe Suggestions", "basedOn": "Based on items expiring soon:",
+    "noItems": "No items expiring within 7 days — nothing to suggest recipes for.",
+    "noRecipes": "No recipes found for your expiring items. Try adding more items to your inventory."
+  },
+  "shopping": {
+    "title": "Shopping List", "done": "{{done}}/{{total}} done",
+    "needsRestocking": "Needs restocking", "myList": "My list",
+    "addPlaceholder": "Add an item…", "add": "Add",
+    "outOfStock": "out of stock", "expired": "expired",
+    "empty": "Nothing to buy — your inventory is well stocked!",
+    "viewInventory": "View inventory"
+  },
+  "household": {
+    "title": "Household", "subtitle": "Share your food inventory with family or housemates",
+    "owner": "Owner:", "leave": "Leave",
+    "leaveConfirm": "Leave this household? Your items will stay but become private.",
+    "inviteCode": "Invite code", "copy": "Copy", "copied": "✓ Copied",
+    "inviteHint": "Share this code so others can join your household.",
+    "members": "Members ({{count}})", "ownerBadge": "Owner",
+    "create": "Create a household", "createDesc": "Start a new shared inventory for your home.",
+    "householdName": "Household name", "namePlaceholder": "e.g. Our Home",
+    "createBtn": "Create household", "or": "or",
+    "join": "Join a household", "joinDesc": "Enter an invite code from someone in your home.",
+    "codeLabel": "Invite code", "codePlaceholder": "e.g. ABC123", "joinBtn": "Join household"
+  },
+  "onboarding": {
+    "step1Icon": "🌱", "step1Title": "Welcome to WasteLess",
+    "step1Desc": "Track what's in your fridge, freezer, and pantry — and always know what's about to expire.",
+    "step2Icon": "📷", "step2Title": "Scan to add items",
+    "step2Desc": "Point your camera at any barcode and product info is filled in automatically. Set the expiry date and you're done.",
+    "step3Icon": "⏰", "step3Title": "Use food before it goes bad",
+    "step3Desc": "Get expiry alerts, recipe suggestions for what's running out, and a smart shopping list. Waste less, save more.",
+    "back": "Back", "next": "Next", "getStarted": "Get started"
+  },
+  "edit": {
+    "title": "Edit item", "name": "Name", "category": "Category",
+    "expiry": "Expiry date", "quantity": "Quantity", "unit": "Unit", "notes": "Notes",
+    "save": "Save changes", "saving": "Saving…", "cancel": "Cancel"
+  },
+  "common": { "loading": "Loading…", "error": "Something went wrong" }
+}

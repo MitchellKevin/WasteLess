@@ -11,6 +11,15 @@ const itemSchema = new mongoose.Schema(
     expiryDate: { type: Date, required: true },
     imageUrl: { type: String },
     price: { type: Number, default: 0, min: 0 },
+    notes: { type: String, trim: true, default: '' },
+    nutrients: {
+      calories: Number,
+      protein: Number,
+      carbs: Number,
+      fat: Number,
+      fiber: Number,
+      salt: Number,
+    },
   },
   { timestamps: true }
 )

@@ -9,6 +9,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import AddItem from './pages/AddItem'
 import BulkAdd from './pages/BulkAdd'
+import ReceiptScanner from './pages/ReceiptScanner'
 import Recipes from './pages/Recipes'
 import ShoppingList from './pages/ShoppingList'
 import Stats from './pages/Stats'
@@ -26,9 +27,7 @@ function PublicRoute({ children }) {
 
 function AppRoutes() {
   const { user } = useAuth()
-  const [showOnboarding, setShowOnboarding] = useState(
-    () => !localStorage.getItem('onboarding_done')
-  )
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('onboarding_done'))
 
   const handleOnboardingDone = () => {
     localStorage.setItem('onboarding_done', '1')
@@ -44,6 +43,7 @@ function AppRoutes() {
           <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/add" element={<PrivateRoute><AddItem /></PrivateRoute>} />
           <Route path="/bulk-add" element={<PrivateRoute><BulkAdd /></PrivateRoute>} />
+          <Route path="/receipt" element={<PrivateRoute><ReceiptScanner /></PrivateRoute>} />
           <Route path="/recipes" element={<PrivateRoute><Recipes /></PrivateRoute>} />
           <Route path="/shopping" element={<PrivateRoute><ShoppingList /></PrivateRoute>} />
           <Route path="/stats" element={<PrivateRoute><Stats /></PrivateRoute>} />

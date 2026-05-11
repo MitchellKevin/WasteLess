@@ -2,6 +2,7 @@ const express = require('express')
 const cors = require('cors')
 const dotenv = require('dotenv')
 const mongoose = require('mongoose')
+const path = require('path')
 
 dotenv.config()
 
@@ -22,6 +23,10 @@ app.use('/api/logs', require('./routes/logs'))
 app.use('/api/barcodes', require('./routes/barcodes'))
 app.use('/api/households', require('./routes/households'))
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }))
+if (process.env.NODE_ENV === 'production') {
+  const dist = path.join(__dirname, '../client/dist')
+  app.use(express.static(dist))
+  app.get('*', (req, res) => res.sendFile(path.join(dist, 'index.html')))
+}
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
