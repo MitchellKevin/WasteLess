@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "build": "npm install --prefix server && npm install --prefix client && npm run build --prefix client",
-    "start": "node server/index.js"
+    "start": "node server/index.js",
+    "postinstall": "node -e \"if(process.env.RENDER){require('child_process').execSync('npm install --prefix server && npm install --prefix client && npm run build --prefix client',{stdio:'inherit'})}\""
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
