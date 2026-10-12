@@ -16,3 +16,15 @@ services:
         sync: false
       - key: REVENUECAT_WEBHOOK_AUTH
         sync: false
+      - key: APP_URL
+        value: https://wasteless-i00n.onrender.com
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false

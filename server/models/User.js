@@ -19,6 +19,11 @@ const userSchema = new mongoose.Schema(
     plusProduct: { type: String, default: null },
     trialUsed: { type: Boolean, default: false },
     trialEndsAt: { type: Date, default: null },
+    // Password reset: only a hash of the emailed token is stored
+    resetTokenHash: { type: String, default: null },
+    resetTokenExpires: { type: Date, default: null },
+    // Logins issued before this moment are no longer valid (set when the password is reset)
+    passwordChangedAt: { type: Date, default: null },
     household: { type: mongoose.Schema.Types.ObjectId, ref: 'Household', default: null },
   },
   { timestamps: true }

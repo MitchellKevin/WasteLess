@@ -31,7 +31,10 @@ export default function Login() {
             <input id="login-email" type="email" inputMode="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={form.email} onChange={set('email')} required autoFocus />
           </div>
           <div className="form-group">
-            <label htmlFor="login-password">{t('auth.password')}</label>
+            <div className="label-row">
+              <label htmlFor="login-password">{t('auth.password')}</label>
+              <Link to="/forgot-password" className="text-link">{t('auth.forgot')}</Link>
+            </div>
             <input id="login-password" type="password" autoComplete="current-password" value={form.password} onChange={set('password')} required />
           </div>
           <button type="submit" className="btn btn-primary btn-full" disabled={loading}>

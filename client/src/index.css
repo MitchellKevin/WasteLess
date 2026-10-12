@@ -1026,6 +1026,10 @@ button.settings-row:first-child { border-top: none; }
 @keyframes icon-slide-left { 50% { transform: translateX(-6px); } }
 @keyframes icon-slide-right { 50% { transform: translateX(6px); } }
 
+/* ── Auth extras ── */
+.label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.label-row .text-link { min-height: 44px; margin: -10px 0; font-size: 0.8125rem; }
+
 /* ── Legal pages ── */
 .legal-page { max-width: 680px; }
 .legal-intro { font-size: 1.0625rem; line-height: 1.55; color: var(--text-body); }

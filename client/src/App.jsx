@@ -22,6 +22,8 @@ import Settings from './pages/Settings'
 import NotificationSettings from './pages/NotificationSettings'
 import Plus from './pages/Plus'
 import Legal from './pages/Legal'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
@@ -67,6 +69,8 @@ function AppRoutes() {
           <Route path="/privacy" element={<Legal doc="privacy" />} />
           <Route path="/terms" element={<Legal doc="terms" />} />
           <Route path="/delete-account" element={<Legal doc="deleteAccount" />} />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
