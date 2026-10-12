@@ -340,7 +340,11 @@
     "dayCount_other": "{{day}}: {{count}} items expire",
     "expiringSoon": "Expiring soon",
     "seeAll": "See all",
-    "shoppingDesc": "What needs restocking, plus your own list"
+    "shoppingDesc": "What needs restocking, plus your own list",
+    "expiresToday": "Expires today",
+    "expiresTomorrow": "Expires tomorrow",
+    "expiresOn": "Expires on {{day}}",
+    "nothingThatDay": "Nothing expires that day."
   },
   "pantry": {
     "title": "Pantry",
@@ -496,10 +500,10 @@
     "feature": {
       "receipt": "Scan a whole receipt in one go",
       "bulk": "Bulk add by scanning item after item",
-      "unlimited": "Unlimited items and household members",
+      "unlimited": "Unlimited products and household members",
       "report": "Money and CO₂ saved reports"
     },
-    "freeLimits": "Free: up to {{items}} items and {{members}} members",
+    "freeLimits": "Free: up to {{items}} products and {{members}} members",
     "choosePlan": "Choose a plan",
     "yearly": "Yearly",
     "monthly": "Monthly",
@@ -529,8 +533,8 @@
       "receiptDesc": "Take one photo and add everything you bought at once.",
       "bulkTitle": "Bulk add with Plus",
       "bulkDesc": "Scan item after item and save them all in one go.",
-      "itemsTitle": "You've reached {{count}} items",
-      "itemsDesc": "The free plan holds up to this many items. Plus has no limit.",
+      "itemsTitle": "You've reached {{count}} products",
+      "itemsDesc": "The free plan holds up to this many different products. New dates of things you already have are always fine. Plus has no limit.",
       "membersTitle": "This household is full",
       "membersDesc": "Free households have up to {{count}} members. With Plus there's no limit.",
       "reportTitle": "See what you save in euros and CO₂",
@@ -566,11 +570,23 @@
   },
   "legal": {
     "terms": "Terms of Use",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "updated": "Last updated {{date}}",
+    "contact": "Questions?",
+    "agreePrefix": "By creating an account you agree to the",
+    "and": "and"
   },
   "reminder": {
     "today": "Expires today. Use it up or freeze it.",
     "soon_one": "Expires tomorrow. Plan it in.",
     "soon_other": "Expires in {{count}} days. Plan it in."
+  },
+  "batches": {
+    "title": "Batches",
+    "count_one": "{{count}} batch",
+    "count_other": "{{count}} batches",
+    "add": "Add another batch",
+    "existing_one": "You already have this ({{count}} batch, soonest {{when}}). It will be added as another batch with its own date.",
+    "existing_other": "You already have this ({{count}} batches, soonest {{when}}). It will be added as another batch with its own date."
   }
 }

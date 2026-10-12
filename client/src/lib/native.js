@@ -17,11 +17,8 @@ export function openExternal(url) {
   else window.open(url, '_blank', 'noopener')
 }
 
-export const LEGAL = {
-  privacy: import.meta.env.VITE_PRIVACY_URL || '',
-  // Apple's standard EULA unless you publish your own terms
-  terms: import.meta.env.VITE_TERMS_URL || 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
-}
+// Legal pages live in the app itself (public routes), so they work in the app and on the web
+export const LEGAL = { privacy: '/privacy', terms: '/terms', deleteAccount: '/delete-account' }
 
 export const STORE_LINKS = {
   ios: import.meta.env.VITE_APP_STORE_URL || '',

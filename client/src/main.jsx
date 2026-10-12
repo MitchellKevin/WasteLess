@@ -10,12 +10,19 @@ import './i18n/index.js'
 import './index.css'
 import App from './App.jsx'
 import { isNative } from './lib/native'
+import { hideSplash } from './lib/splash'
 
-// The installed app ships its own files; the service worker is only for the web version
-if (!isNative && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {})
-  })
+// The service worker caches files for the published web version only. In the installed
+// app it isn't needed, and during development it would serve stale files, so remove it there.
+if ('serviceWorker' in navigator) {
+  if (import.meta.env.PROD && !isNative) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {})
+    })
+  } else {
+    navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister()))
+    if ('caches' in window) caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)))
+  }
 }
 
 createRoot(document.getElementById('root')).render(
@@ -23,3 +30,6 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>
 )
+
+// The first frame is rendered behind the splash; fade it out on the next one
+requestAnimationFrame(() => requestAnimationFrame(hideSplash))

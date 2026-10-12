@@ -344,7 +344,11 @@
     "dayCount_other": "{{day}}: {{count}} items verlopen",
     "expiringSoon": "Verloopt binnenkort",
     "seeAll": "Alles bekijken",
-    "shoppingDesc": "Wat aangevuld moet worden, plus je eigen lijst"
+    "shoppingDesc": "Wat aangevuld moet worden, plus je eigen lijst",
+    "expiresToday": "Verloopt vandaag",
+    "expiresTomorrow": "Verloopt morgen",
+    "expiresOn": "Verloopt op {{day}}",
+    "nothingThatDay": "Er verloopt niets op die dag."
   },
   "pantry": {
     "title": "Voorraad",
@@ -500,10 +504,10 @@
     "feature": {
       "receipt": "Een hele kassabon in één keer scannen",
       "bulk": "In bulk toevoegen door item na item te scannen",
-      "unlimited": "Onbeperkt items en huishoudleden",
+      "unlimited": "Onbeperkt producten en huishoudleden",
       "report": "Rapporten met bespaard geld en CO₂"
     },
-    "freeLimits": "Gratis: tot {{items}} items en {{members}} leden",
+    "freeLimits": "Gratis: tot {{items}} producten en {{members}} leden",
     "choosePlan": "Kies een abonnement",
     "yearly": "Jaarlijks",
     "monthly": "Maandelijks",
@@ -533,8 +537,8 @@
       "receiptDesc": "Maak één foto en voeg alles wat je kocht in één keer toe.",
       "bulkTitle": "In bulk toevoegen met Plus",
       "bulkDesc": "Scan item na item en sla alles in één keer op.",
-      "itemsTitle": "Je hebt {{count}} items bereikt",
-      "itemsDesc": "Het gratis abonnement houdt zoveel items bij. Met Plus is er geen limiet.",
+      "itemsTitle": "Je hebt {{count}} producten bereikt",
+      "itemsDesc": "Het gratis abonnement houdt zoveel verschillende producten bij. Nieuwe datums van iets wat je al hebt mogen altijd. Met Plus is er geen limiet.",
       "membersTitle": "Dit huishouden is vol",
       "membersDesc": "Gratis huishoudens hebben tot {{count}} leden. Met Plus is er geen limiet.",
       "reportTitle": "Zie wat je bespaart in euro's en CO₂",
@@ -570,11 +574,23 @@
   },
   "legal": {
     "terms": "Gebruiksvoorwaarden",
-    "privacy": "Privacybeleid"
+    "privacy": "Privacybeleid",
+    "updated": "Laatst bijgewerkt {{date}}",
+    "contact": "Vragen?",
+    "agreePrefix": "Door een account aan te maken ga je akkoord met de",
+    "and": "en het"
   },
   "reminder": {
     "today": "Verloopt vandaag. Maak het op of vries het in.",
     "soon_one": "Verloopt morgen. Plan het in.",
     "soon_other": "Verloopt over {{count}} dagen. Plan het in."
+  },
+  "batches": {
+    "title": "Partijen",
+    "count_one": "{{count}} partij",
+    "count_other": "{{count}} partijen",
+    "add": "Nog een partij toevoegen",
+    "existing_one": "Dit heb je al ({{count}} partij, eerstvolgende {{when}}). Het wordt toegevoegd als nieuwe partij met een eigen datum.",
+    "existing_other": "Dit heb je al ({{count}} partijen, eerstvolgende {{when}}). Het wordt toegevoegd als nieuwe partij met een eigen datum."
   }
 }

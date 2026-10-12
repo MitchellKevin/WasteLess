@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">WasteLess</string>
     <string name="title_activity_main">WasteLess</string>
-    <string name="package_name">nl.wasteless.app</string>
-    <string name="custom_url_scheme">nl.wasteless.app</string>
+    <string name="package_name">com.wasteless.app</string>
+    <string name="custom_url_scheme">com.wasteless.app</string>
 </resources>

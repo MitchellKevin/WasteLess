@@ -15,7 +15,8 @@ export const PantryIcon = make(<><rect x="5" y="3" width="14" height="18" rx="2"
 export const PlusIcon = make(<path d="M12 5v14M5 12h14" />, 2.2)
 export const MinusIcon = make(<path d="M5 12h14" />, 2.2)
 export const RecipesIcon = make(<><path d="M4 11h16v2a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6z" /><path d="M9 7c0-1 1-1 1-2M14 7c0-1 1-1 1-2" /></>)
-export const ImpactIcon = make(<path d="M5 19V11M12 19V5M19 19v-9" />)
+// Three separate bars so they can be animated one by one
+export const ImpactIcon = make(<><path d="M5 19V11" /><path d="M12 19V5" /><path d="M19 19v-9" /></>)
 export const CartIcon = make(<><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2" /><circle cx="9" cy="20" r="1.2" /><circle cx="17" cy="20" r="1.2" /></>)
 export const HouseholdIcon = make(<><circle cx="9" cy="8" r="3" /><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" /><path d="M16 5.5a3 3 0 0 1 0 5M18 14.5c1.8.8 3 2.6 3 5.5" /></>)
 export const SettingsIcon = make(<><path d="M4 7h10M18 7h2M4 17h2M10 17h10" /><circle cx="16" cy="7" r="2" /><circle cx="8" cy="17" r="2" /></>)

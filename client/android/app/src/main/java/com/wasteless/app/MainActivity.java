@@ -1,4 +1,4 @@
-package nl.wasteless.app;
+package com.wasteless.app;
 
 import com.getcapacitor.BridgeActivity;
 

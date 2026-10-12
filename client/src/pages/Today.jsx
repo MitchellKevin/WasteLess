@@ -16,6 +16,7 @@ export default function Today() {
   const { user } = useAuth()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedDay, setSelectedDay] = useState(0) // 0 = today … 6
   const [busy, setBusy] = useState(false)
   const remindDays = user?.notifyDaysBefore ?? 2
 
@@ -38,8 +39,10 @@ export default function Today() {
 
   const week = Array.from({ length: 7 }, (_, n) => {
     const date = new Date(Date.now() + n * MS_PER_DAY)
-    return { n, date, count: upcoming.filter((i) => i.days === n).length }
+    return { n, date, items: upcoming.filter((i) => i.days === n) }
   })
+  const day = week[selectedDay]
+  const dayName = (d) => formatDate(d.date, i18n.language, { weekday: 'long', day: 'numeric', month: 'long' })
 
   const markUsed = async () => {
     setBusy(true)
@@ -87,17 +90,31 @@ export default function Today() {
         <h2 className="section-heading" id="week-title">{t('today.thisWeek')}</h2>
         <ol className="week-strip">
           {week.map((d) => (
-            <li
-              key={d.n}
-              className={`week-day${d.n === 0 ? ' is-today' : ''}${d.count === 0 ? ' is-empty' : ''}`}
-              aria-label={t('today.dayCount', { day: formatDate(d.date, i18n.language, { weekday: 'long', day: 'numeric' }), count: d.count })}
-            >
-              <span className="week-name" aria-hidden="true">{formatDate(d.date, i18n.language, { weekday: 'short' })}</span>
-              <span className="week-date" aria-hidden="true">{d.date.getDate()}</span>
-              <span className="week-count" aria-hidden="true">{d.count || '–'}</span>
+            <li key={d.n}>
+              <button
+                type="button"
+                className={`week-day${d.n === 0 ? ' is-today' : ''}${d.n === selectedDay ? ' is-selected' : ''}${d.items.length === 0 ? ' is-empty' : ''}`}
+                aria-pressed={d.n === selectedDay}
+                aria-controls="day-items"
+                aria-label={t('today.dayCount', { day: formatDate(d.date, i18n.language, { weekday: 'long', day: 'numeric' }), count: d.items.length })}
+                onClick={() => setSelectedDay(d.n)}
+              >
+                <span className="week-name" aria-hidden="true">{formatDate(d.date, i18n.language, { weekday: 'short' })}</span>
+                <span className="week-date" aria-hidden="true">{d.date.getDate()}</span>
+                <span className="week-count" aria-hidden="true">{d.items.length || '–'}</span>
+              </button>
             </li>
           ))}
         </ol>
+
+        <div className="day-items item-list" id="day-items" aria-live="polite">
+          <h3 className="day-items-title">
+            {selectedDay === 0 ? t('today.expiresToday') : selectedDay === 1 ? t('today.expiresTomorrow') : t('today.expiresOn', { day: dayName(day) })}
+          </h3>
+          {day.items.length === 0
+            ? <p className="day-items-empty">{t('today.nothingThatDay')}</p>
+            : day.items.map((item) => <ItemRow key={item._id} item={item} showBar={false} />)}
+        </div>
       </section>
 
       {soon.length > 0 && (

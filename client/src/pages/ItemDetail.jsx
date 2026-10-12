@@ -6,22 +6,25 @@ import { useAuth } from '../context/AuthContext'
 import EditModal from '../components/EditModal'
 import NutritionPanel from '../components/NutritionPanel'
 import { BackIcon, PencilIcon, MinusIcon, PlusIcon, CheckIcon, SnowflakeIcon, TrashIcon, RecipesIcon, ChevronIcon } from '../components/Icons'
-import { LOCATIONS, daysUntil, urgency, expiryLabel, freshness, formatDate, finishItem, freezeItem, openedLabel, remindLabel } from '../lib/items'
+import { LOCATIONS, daysUntil, urgency, expiryLabel, freshness, formatDate, finishItem, freezeItem, openedLabel, remindLabel, productKey, totalQuantity } from '../lib/items'
 
 export default function ItemDetail() {
   const { id } = useParams()
   const { t, i18n } = useTranslation()
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [item, setItem] = useState(null)
+  const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    api.get('/items').then(({ data }) => setItem(data.find((i) => i._id === id) || null)).finally(() => setLoading(false))
+    api.get('/items').then(({ data }) => setItems(data)).finally(() => setLoading(false))
   }, [id])
+
+  const item = items.find((i) => i._id === id) || null
+  const setItem = (updated) => setItems((prev) => prev.map((i) => (i._id === updated._id ? updated : i)))
 
   if (loading) return <div className="loading" role="status">{t('common.loading')}</div>
   if (!item) {
@@ -38,6 +41,11 @@ export default function ItemDetail() {
   const fresh = freshness(item)
   const location = item.location || 'fridge'
   const addedBy = item.user?._id === user?.id ? t('detail.byYou') : item.user?.name
+  // Other expiry dates of the same product
+  const batches = items
+    .filter((i) => productKey(i.name) === productKey(item.name))
+    .sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))
+  const addBatchUrl = `/add?${new URLSearchParams({ name: item.name, unit: item.unit || 'item', category: item.category || '', location })}`
 
   const run = async (fn, after) => {
     setBusy(true); setError('')
@@ -46,7 +54,12 @@ export default function ItemDetail() {
     finally { setBusy(false) }
   }
   const patch = (changes) => run(() => api.patch(`/items/${item._id}`, changes), ({ data }) => setItem(data))
-  const finish = (action) => run(() => finishItem(item, action), () => navigate('/pantry'))
+  // Done with this batch: continue with the next one of the same product, if any
+  const finish = (action) => run(() => finishItem(item, action), () => {
+    const next = batches.find((b) => b._id !== item._id)
+    if (next) { setItems((prev) => prev.filter((i) => i._id !== item._id)); navigate(`/item/${next._id}`, { replace: true }) }
+    else navigate('/pantry')
+  })
   const freeze = () => run(() => freezeItem(item), setItem)
 
   return (
@@ -84,6 +97,31 @@ export default function ItemDetail() {
         )}
         <button type="button" className="btn btn-secondary btn-danger-text" onClick={() => finish('wasted')} disabled={busy}><TrashIcon size={20} />{t('detail.threwAway')}</button>
       </div>
+
+      <section className="card batch-card" aria-labelledby="batches-title">
+        <div className="card-head">
+          <h2 className="card-label" id="batches-title">{t('batches.title')}</h2>
+          {batches.length > 1 && <span className="card-meta">{totalQuantity(batches) ?? t('batches.count', { count: batches.length })}</span>}
+        </div>
+        {batches.length > 1 && (
+          <ul className="batch-list">
+            {batches.map((b) => {
+              const d = daysUntil(b.expiryDate)
+              const current = b._id === item._id
+              return (
+                <li key={b._id}>
+                  <Link to={`/item/${b._id}`} replace className={`batch-row${current ? ' current' : ''}`} aria-current={current ? 'true' : undefined}>
+                    <span className="batch-date">{formatDate(b.expiryDate, i18n.language)}</span>
+                    <span className="item-row-meta">{b.quantity} {b.unit} · {t(`location.${b.location || 'fridge'}`)}</span>
+                    <span className={`batch-when when--${urgency(d)}`}>{expiryLabel(t, d)}</span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+        <Link to={addBatchUrl} className="btn btn-secondary btn-sm"><PlusIcon size={18} />{t('batches.add')}</Link>
+      </section>
 
       <Link to={`/recipes?item=${encodeURIComponent(item.name)}`} className="link-card link-card--icon">
         <RecipesIcon className="link-card-icon" />

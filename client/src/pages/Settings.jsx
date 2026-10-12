@@ -221,16 +221,14 @@ export default function Settings() {
       <section className="settings-group" aria-labelledby="settings-about">
         <h2 className="section-title" id="settings-about">{t('settings.about')}</h2>
         <div className="card settings-list">
-          {LEGAL.privacy && (
-            <button type="button" className="settings-row" onClick={() => openExternal(LEGAL.privacy)}>
-              <span className="settings-row-title">{t('legal.privacy')}</span>
-              <ChevronIcon size={20} className="settings-row-chevron" />
-            </button>
-          )}
-          <button type="button" className="settings-row" onClick={() => openExternal(LEGAL.terms)}>
+          <Link to={LEGAL.privacy} className="settings-row">
+            <span className="settings-row-title">{t('legal.privacy')}</span>
+            <ChevronIcon size={20} className="settings-row-chevron" />
+          </Link>
+          <Link to={LEGAL.terms} className="settings-row">
             <span className="settings-row-title">{t('legal.terms')}</span>
             <ChevronIcon size={20} className="settings-row-chevron" />
-          </button>
+          </Link>
         </div>
       </section>
 

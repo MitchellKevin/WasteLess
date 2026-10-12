@@ -665,17 +665,26 @@ fieldset.form-group { border: none; padding: 0; margin: 0; min-width: 0; }
 .btn-hero-outline:hover:not(:disabled) { background: rgba(255,255,255,.08); }
 .week-strip { list-style: none; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .week-day {
+  width: 100%; min-height: 64px; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   padding: 8px 0; border-radius: 14px;
-  background: var(--surface); border: 1px solid var(--divider);
+  background: var(--surface); border: 1px solid var(--divider); color: var(--text);
+  font: inherit; transition: background .15s, border-color .15s;
 }
+.week-day:hover { border-color: var(--border-strong); }
 .week-day.is-empty { background: transparent; }
-.week-day.is-today { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+/* Today keeps a green outline when another day is selected */
+.week-day.is-today { border: 2px solid var(--primary); padding: 7px 0; }
+.week-day.is-selected { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
 .week-name { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); }
-.week-day.is-today .week-name { color: inherit; opacity: .8; }
+.week-day.is-selected .week-name { color: inherit; opacity: .8; }
 .week-date { font-size: 1.0625rem; font-weight: 700; }
 .week-count { font-size: 0.75rem; font-weight: 700; }
 .week-day.is-empty .week-count { color: var(--text-muted); font-weight: 400; }
+.week-day.is-selected .week-count { color: inherit; }
+.day-items { margin-top: 14px; }
+.day-items-title { font-family: var(--font-body); font-size: 0.875rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0; }
+.day-items-empty { font-size: 0.9375rem; color: var(--text-muted); padding: 4px 0; }
 
 /* ── Empty pantry ── */
 .empty-pantry { display: flex; flex-direction: column; gap: 20px; max-width: 560px; }
@@ -945,6 +954,85 @@ button.settings-row:first-child { border-top: none; }
 .report-value { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; line-height: 1.1; }
 .report-value--good { color: var(--ok-text); }
 .report-value--bad { color: var(--danger-text); }
+
+/* ── Batches (same product, different dates) ── */
+.batch-count { font-weight: 700; color: var(--text-body); }
+.batch-list { list-style: none; display: flex; flex-direction: column; margin: -4px 0 4px; }
+.batch-row {
+  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "date when" "meta when";
+  align-items: center; column-gap: 12px; row-gap: 2px;
+  min-height: 56px; padding: 8px 12px; margin: 0 -12px; border-radius: var(--radius-sm);
+  color: var(--text); text-decoration: none; border-top: 1px solid var(--track);
+}
+.batch-list li:first-child .batch-row { border-top: none; }
+.batch-row:hover { background: var(--hover-bg); }
+.batch-row.current { background: var(--ok-bg); border-top-color: transparent; }
+.batch-list li:has(.current) + li .batch-row { border-top-color: transparent; }
+.batch-date { grid-area: date; font-weight: 700; }
+.batch-row .item-row-meta { grid-area: meta; }
+.batch-when { grid-area: when; font-size: 0.8125rem; font-weight: 700; white-space: nowrap; }
+.batch-card > .btn { align-self: flex-start; }
+.batch-hint { color: var(--ok-text); font-weight: 500; }
+
+/* ── Tab icon animations (play on tap; off with "reduce motion") ── */
+.tap svg, .tap svg * { transform-box: fill-box; }
+/* Today: the house hops and lands softly */
+.tap.anim-today svg { transform-origin: 50% 100%; animation: icon-hop .55s cubic-bezier(.3, .7, .4, 1); }
+@keyframes icon-hop {
+  0% { transform: translateY(0) scale(1, 1); }
+  20% { transform: translateY(0) scale(1.12, .86); }
+  50% { transform: translateY(-6px) scale(.94, 1.08); }
+  80% { transform: translateY(0) scale(1.06, .94); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+/* Pantry: the fridge door swings open and shut */
+.tap.anim-pantry svg { transform-origin: 0% 50%; animation: icon-door .6s ease-in-out; }
+@keyframes icon-door {
+  0%, 100% { transform: perspective(60px) rotateY(0); }
+  40% { transform: perspective(60px) rotateY(-42deg); }
+  70% { transform: perspective(60px) rotateY(8deg); }
+}
+/* Add: the plus turns a quarter and pops */
+.tap.anim-add .tab-add-btn svg { transform-origin: 50% 50%; animation: icon-turn .45s cubic-bezier(.3, 1.4, .5, 1); }
+@keyframes icon-turn {
+  0% { transform: rotate(0) scale(1); }
+  50% { transform: rotate(60deg) scale(1.2); }
+  100% { transform: rotate(90deg) scale(1); }
+}
+.tap.anim-add .tab-add-btn { animation: icon-press .3s ease-out; }
+@keyframes icon-press { 40% { transform: scale(.9); } }
+/* Recipes: steam rises from the bowl, which bobs */
+.tap.anim-recipes svg path:first-child { transform-origin: 50% 100%; animation: icon-bob .6s ease-in-out; }
+.tap.anim-recipes svg path:last-child { animation: icon-steam .7s ease-out; }
+@keyframes icon-bob { 30% { transform: translateY(1.5px) scale(1.04, .94); } 60% { transform: translateY(-1px); } }
+@keyframes icon-steam {
+  0% { transform: translateY(0); opacity: 1; }
+  45% { transform: translateY(-4px); opacity: 0; }
+  46% { transform: translateY(3px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+/* Impact: the bars grow one after another */
+.tap.anim-impact svg path { transform-origin: 50% 100%; animation: icon-grow .5s cubic-bezier(.3, 1.3, .5, 1) backwards; }
+.tap.anim-impact svg path:nth-child(2) { animation-delay: .08s; }
+.tap.anim-impact svg path:nth-child(3) { animation-delay: .16s; }
+@keyframes icon-grow { from { transform: scaleY(.1); } to { transform: scaleY(1); } }
+/* "Reduce motion" turns the icon animations off completely (including the bar delays) */
+@media (prefers-reduced-motion: reduce) {
+  .tap svg, .tap svg *, .tap .tab-add-btn { animation: none !important; }
+}
+/* Settings: the two sliders move */
+.tap.anim-settings svg circle:nth-of-type(1) { animation: icon-slide-left .6s ease-in-out; }
+.tap.anim-settings svg circle:nth-of-type(2) { animation: icon-slide-right .6s ease-in-out; }
+@keyframes icon-slide-left { 50% { transform: translateX(-6px); } }
+@keyframes icon-slide-right { 50% { transform: translateX(6px); } }
+
+/* ── Legal pages ── */
+.legal-page { max-width: 680px; }
+.legal-intro { font-size: 1.0625rem; line-height: 1.55; color: var(--text-body); }
+.legal-section { display: flex; flex-direction: column; gap: 8px; }
+.legal-section p { line-height: 1.6; color: var(--text-body); }
+.auth-terms { text-align: center; font-size: 0.8125rem; color: var(--text-muted); margin-top: 16px; line-height: 1.5; }
+.auth-terms a { color: var(--primary-text); font-weight: 700; }
 
 /* ── Responsive ── */
 @media (max-width: 600px) {

@@ -26,10 +26,14 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
+    // Free plan: limited number of products. Items with the same name are batches of one
+    // product, so adding another expiry date of something you already have is always allowed.
     if (!(await householdHasPlus(req.user.id))) {
-      const count = await Item.countDocuments({ user: { $in: await householdUserIds(req.user.id) } })
-      if (count >= FREE_LIMITS.items)
-        return res.status(402).json({ code: 'limit_items', limit: FREE_LIMITS.items, message: `Free plan holds up to ${FREE_LIMITS.items} items` })
+      const names = await Item.distinct('name', { user: { $in: await householdUserIds(req.user.id) } })
+      const products = new Set(names.map((n) => n.trim().toLowerCase()))
+      const isNewProduct = !products.has(String(req.body.name || '').trim().toLowerCase())
+      if (isNewProduct && products.size >= FREE_LIMITS.items)
+        return res.status(402).json({ code: 'limit_items', limit: FREE_LIMITS.items, message: `Free plan holds up to ${FREE_LIMITS.items} products` })
     }
     const item = await Item.create({ ...pick(req.body), user: req.user.id })
     await Log.create({

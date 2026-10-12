@@ -1,14 +1,18 @@
 {
-  "appId": "nl.wasteless.app",
+  "appId": "com.wasteless.app",
   "appName": "WasteLess",
   "webDir": "dist",
-  "backgroundColor": "#F5F2EA",
+  "backgroundColor": "#1F4D36",
   "ios": {
     "contentInset": "never"
   },
   "plugins": {
     "SystemBars": {
       "insetsHandling": "css"
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_wasteless",
+      "iconColor": "#1F4D36"
     }
   }
 }

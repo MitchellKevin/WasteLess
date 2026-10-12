@@ -68,3 +68,26 @@ export function openedLabel(t, openedAt) {
 export function remindLabel(t, days) {
   return days === 0 ? t('notifications.sameDay') : t('notifications.before', { count: days })
 }
+
+// Items with the same name are batches of one product (same thing, different expiry dates)
+export const productKey = (name) => String(name || '').trim().toLowerCase()
+
+// [{ key, name, batches }] with batches sorted soonest-expiring first; batches[0] decides urgency
+export function groupProducts(items) {
+  const groups = new Map()
+  for (const item of items) {
+    const key = productKey(item.name)
+    if (!groups.has(key)) groups.set(key, { key, name: item.name, batches: [] })
+    groups.get(key).batches.push(item)
+  }
+  for (const g of groups.values()) g.batches.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))
+  return [...groups.values()].sort((a, b) => new Date(a.batches[0].expiryDate) - new Date(b.batches[0].expiryDate))
+}
+
+// "2.5 L" when all batches share a unit, otherwise null
+export function totalQuantity(batches) {
+  const units = new Set(batches.map((b) => (b.unit || '').trim().toLowerCase()))
+  if (units.size !== 1) return null
+  const sum = batches.reduce((s, b) => s + (Number(b.quantity) || 0), 0)
+  return `${Math.round(sum * 100) / 100} ${batches[0].unit}`
+}

@@ -21,6 +21,7 @@ import Household from './pages/Household'
 import Settings from './pages/Settings'
 import NotificationSettings from './pages/NotificationSettings'
 import Plus from './pages/Plus'
+import Legal from './pages/Legal'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
@@ -63,6 +64,9 @@ function AppRoutes() {
           <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
           <Route path="/settings/notifications" element={<PrivateRoute><NotificationSettings /></PrivateRoute>} />
           <Route path="/plus" element={<PrivateRoute><Plus /></PrivateRoute>} />
+          <Route path="/privacy" element={<Legal doc="privacy" />} />
+          <Route path="/terms" element={<Legal doc="terms" />} />
+          <Route path="/delete-account" element={<Legal doc="deleteAccount" />} />
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />

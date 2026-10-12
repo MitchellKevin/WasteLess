@@ -1,11 +1,11 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import api from '../api/axios'
 import { lookupBarcode } from '../api/lookup'
 import BarcodeScanner from '../components/BarcodeScanner'
 import AddTabs from '../components/AddTabs'
-import { LOCATIONS, formatDate } from '../lib/items'
+import { LOCATIONS, formatDate, productKey, groupProducts, expiryLabel, daysUntil } from '../lib/items'
 import { BarcodeIcon } from '../components/Icons'
 import { PlusCard } from '../components/PlusGate'
 
@@ -17,7 +17,18 @@ export default function AddItem() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const [form, setForm] = useState(() => ({ ...EMPTY, expiryDate: inDays(7) }))
+  // "Add another batch" from an item's page passes the product details along
+  const [form, setForm] = useState(() => ({
+    ...EMPTY,
+    expiryDate: inDays(7),
+    name: params.get('name') || '',
+    unit: params.get('unit') || EMPTY.unit,
+    category: params.get('category') || '',
+    location: LOCATIONS.includes(params.get('location')) ? params.get('location') : EMPTY.location,
+  }))
+  const [products, setProducts] = useState([])
+  useEffect(() => { api.get('/items').then(({ data }) => setProducts(groupProducts(data))).catch(() => {}) }, [])
+  const existing = form.name.trim() ? products.find((g) => g.key === productKey(form.name)) : null
   const [scanning, setScanning] = useState(params.get('scan') === '1')
   const [pickDate, setPickDate] = useState(false)
   const [lookingUp, setLookingUp] = useState(false)
@@ -45,7 +56,8 @@ export default function AddItem() {
     if (!form.expiryDate) { setError(t('add.expiryRequired')); return }
     setSaving(true)
     try {
-      await api.post('/items', { ...form, price: Number(form.price) || 0 })
+      // A new batch of something you already have keeps that product's spelling
+      await api.post('/items', { ...form, name: existing ? existing.name : form.name.trim(), price: Number(form.price) || 0 })
       navigate('/')
     } catch (err) {
       if (err.response?.data?.code === 'limit_items') setLimitReached(err.response.data.limit)
@@ -78,6 +90,11 @@ export default function AddItem() {
           <div className="form-group">
             <label htmlFor="add-name">{t('add.name')} *</label>
             <input id="add-name" type="text" value={form.name} onChange={set('name')} required placeholder={t('add.namePlaceholder')} />
+            {existing && (
+              <span className="form-hint batch-hint" role="status">
+                {t('batches.existing', { count: existing.batches.length, when: expiryLabel(t, daysUntil(existing.batches[0].expiryDate)).toLowerCase() })}
+              </span>
+            )}
           </div>
           <div className="form-group">
             <label htmlFor="add-category">{t('add.category')}</label>

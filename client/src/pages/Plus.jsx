@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
@@ -56,8 +56,9 @@ function Legal() {
   const { t } = useTranslation()
   return (
     <p className="form-hint plus-legal">
-      <button type="button" className="text-link" onClick={() => openExternal(LEGAL.terms)}>{t('legal.terms')}</button>
-      {LEGAL.privacy && <> · <button type="button" className="text-link" onClick={() => openExternal(LEGAL.privacy)}>{t('legal.privacy')}</button></>}
+      <Link className="text-link" to={LEGAL.terms}>{t('legal.terms')}</Link>
+      {' · '}
+      <Link className="text-link" to={LEGAL.privacy}>{t('legal.privacy')}</Link>
     </p>
   )
 }

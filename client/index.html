@@ -13,8 +13,78 @@
     <meta name="theme-color" content="#121A15" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon.svg" />
+    <!-- Splash screen (from the design's "Loading" screen). Inline so it shows before the app's JS and CSS load.
+         Ring, leaf and wordmark play once and hold; the dots keep going while the app loads. -->
+    <style>
+      #splash {
+        position: fixed; inset: 0; z-index: 9999;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+        background: #1F4D36; color: #F5F2EA;
+        font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        transition: opacity .35s ease;
+      }
+      #splash.splash--hide { opacity: 0; pointer-events: none; }
+      .splash-word { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+      .splash-name { font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700; font-size: 44px; letter-spacing: -0.02em; }
+      .splash-tagline { font-size: 16px; color: #CFE3D4; }
+      .splash-status {
+        position: absolute; left: 0; right: 0;
+        bottom: calc(64px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom)));
+        display: flex; flex-direction: column; align-items: center; gap: 12px;
+      }
+      .splash-dots { display: flex; gap: 8px; }
+      .splash-dot { width: 8px; height: 8px; border-radius: 4px; background: #F5F2EA; animation: splashDot 1.2s ease-in-out infinite; }
+      .splash-dot:nth-child(2) { animation-delay: .15s; }
+      .splash-dot:nth-child(3) { animation-delay: .3s; }
+      .splash-loading { font-size: 14px; color: #CFE3D4; }
+      .splash-ring { transform: rotate(-90deg); transform-origin: 70px 70px; stroke-dasharray: 364.4; stroke-dashoffset: 364.4; animation: splashRing 2.4s cubic-bezier(.6, .05, .3, 1) forwards; }
+      .splash-leaf { stroke-dasharray: 1; stroke-dashoffset: 1; animation: splashLeaf 2.4s ease-in-out forwards; }
+      .splash-pulse { transform-origin: 70px 70px; animation: splashPulse 2.4s ease-in-out forwards; }
+      .splash-word { opacity: 0; transform: translateY(10px); animation: splashWord 2.4s ease-out forwards; }
+      @keyframes splashRing { 0% { stroke-dashoffset: 364.4; } 70%, 100% { stroke-dashoffset: 0; } }
+      @keyframes splashLeaf { 0%, 10% { stroke-dashoffset: 1; } 60%, 100% { stroke-dashoffset: 0; } }
+      @keyframes splashPulse { 0%, 60% { transform: scale(1); } 78% { transform: scale(1.08); } 100% { transform: scale(1); } }
+      @keyframes splashWord { 0%, 35% { opacity: 0; transform: translateY(10px); } 65%, 100% { opacity: 1; transform: translateY(0); } }
+      @keyframes splashDot { 0%, 100% { opacity: .3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-4px); } }
+      @media (prefers-reduced-motion: reduce) {
+        .splash-ring, .splash-leaf { animation: none; stroke-dashoffset: 0; }
+        .splash-pulse, .splash-dot { animation: none; }
+        .splash-word { animation: none; opacity: 1; transform: none; }
+      }
+    </style>
   </head>
   <body>
+    <div id="splash" role="status" aria-label="Loading WasteLess">
+      <svg width="140" height="140" viewBox="0 0 140 140" fill="none" aria-hidden="true">
+        <circle cx="70" cy="70" r="58" stroke="#2E6A4A" stroke-width="6" />
+        <circle class="splash-ring" cx="70" cy="70" r="58" stroke="#F5F2EA" stroke-width="6" stroke-linecap="round" />
+        <g class="splash-pulse">
+          <g transform="translate(40 40) scale(2.5)" stroke="#DDF0DF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path class="splash-leaf" pathLength="1" d="M5 19c0-8 4-13 14-14 0 10-5 14-13 14z" />
+            <path class="splash-leaf" pathLength="1" d="M5 19c3-4 6-7 10-9" />
+          </g>
+        </g>
+      </svg>
+      <div class="splash-word" aria-hidden="true">
+        <span class="splash-name">WasteLess</span>
+        <span class="splash-tagline" data-nl="Eet het op voor het bederft.">Eat it before it turns.</span>
+      </div>
+      <div class="splash-status" aria-hidden="true">
+        <div class="splash-dots"><span class="splash-dot"></span><span class="splash-dot"></span><span class="splash-dot"></span></div>
+        <span class="splash-loading" data-nl="Je koelkast checken…">Checking your fridge…</span>
+      </div>
+    </div>
+    <script>
+      // Splash text in the app's language (same choice as i18n: saved setting, else the device language)
+      (function () {
+        var lang
+        try { lang = localStorage.getItem('lang') } catch (e) {}
+        if ((lang || navigator.language || '').slice(0, 2) !== 'nl') return
+        document.documentElement.lang = 'nl'
+        document.getElementById('splash').setAttribute('aria-label', 'WasteLess laden')
+        document.querySelectorAll('#splash [data-nl]').forEach(function (el) { el.textContent = el.getAttribute('data-nl') })
+      })()
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

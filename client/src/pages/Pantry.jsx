@@ -5,7 +5,7 @@ import api from '../api/axios'
 import ItemRow from '../components/ItemRow'
 import EmptyPantry from '../components/EmptyPantry'
 import { CartIcon, SearchIcon } from '../components/Icons'
-import { daysUntil, LOCATIONS } from '../lib/items'
+import { daysUntil, LOCATIONS, groupProducts } from '../lib/items'
 import { syncReminders } from '../lib/reminders'
 import { isNative } from '../lib/native'
 import { useAuth } from '../context/AuthContext'
@@ -35,19 +35,20 @@ export default function Pantry() {
   if (loading) return <div className="loading" role="status">{t('dashboard.loading')}</div>
   if (items.length === 0) return <EmptyPantry itemCount={0} />
 
-  const attention = items.filter((i) => daysUntil(i.expiryDate) <= 7).length
+  // Same name = same product; each expiry date is a batch of it
+  const products = groupProducts(items)
+  const attention = products.filter((g) => daysUntil(g.batches[0].expiryDate) <= 7).length
   const query = search.trim().toLowerCase()
-  const shown = items
+  const shown = groupProducts(items
     .filter((i) => place === 'all' || (i.location || 'fridge') === place)
-    .filter((i) => !query || i.name.toLowerCase().includes(query) || (i.category || '').toLowerCase().includes(query))
-    .sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))
+    .filter((i) => !query || i.name.toLowerCase().includes(query) || (i.category || '').toLowerCase().includes(query)))
 
   return (
     <div className="page pantry">
       <div className="page-header page-header--row">
         <div>
           <h1 className="headline">{t('pantry.title')}</h1>
-          <p className="page-subtitle">{t('pantry.summary', { count: items.length, attention })}</p>
+          <p className="page-subtitle">{t('pantry.summary', { count: products.length, attention })}</p>
         </div>
         <Link to="/shopping" className="btn btn-secondary btn-sm"><CartIcon size={18} />{t('shopping.title')}</Link>
       </div>
@@ -84,7 +85,7 @@ export default function Pantry() {
         <div className="empty-state"><p>{query ? t('dashboard.noMatch', { query: search }) : t('dashboard.emptyFilter')}</p></div>
       ) : (
         SECTIONS.map(({ key, test }) => {
-          const group = shown.filter((i) => test(daysUntil(i.expiryDate)))
+          const group = shown.filter((g) => test(daysUntil(g.batches[0].expiryDate)))
           if (group.length === 0) return null
           return (
             <section key={key} className="item-list" aria-labelledby={`pantry-${key}`}>
@@ -93,7 +94,7 @@ export default function Pantry() {
                 {t(`pantry.group.${key}`)}
                 <span className="group-count">{group.length}</span>
               </h2>
-              {group.map((item) => <ItemRow key={item._id} item={item} />)}
+              {group.map((g) => <ItemRow key={g.key} batches={g.batches} />)}
             </section>
           )
         })

@@ -45,6 +45,7 @@ export default function Register() {
             {loading ? t('auth.creating') : t('auth.createAccount')}
           </button>
         </form>
+        <p className="auth-terms">{t('legal.agreePrefix')} <Link to="/terms">{t('legal.terms')}</Link> {t('legal.and')} <Link to="/privacy">{t('legal.privacy')}</Link>.</p>
         <p className="auth-link">{t('auth.alreadyHaveAccount')} <Link to="/login">{t('auth.signInLink')}</Link></p>
       </div>
     </div>
