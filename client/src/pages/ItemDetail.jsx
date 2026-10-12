@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext'
 import EditModal from '../components/EditModal'
 import NutritionPanel from '../components/NutritionPanel'
 import { BackIcon, PencilIcon, MinusIcon, PlusIcon, CheckIcon, SnowflakeIcon, TrashIcon, RecipesIcon, ChevronIcon } from '../components/Icons'
+import { isPlus } from '../lib/plan'
+import { fetchSuggestions, inDays } from '../lib/suggest'
 import { LOCATIONS, daysUntil, urgency, expiryLabel, freshness, formatDate, finishItem, freezeItem, openedLabel, remindLabel, productKey, totalQuantity } from '../lib/items'
 
 export default function ItemDetail() {
@@ -18,6 +20,7 @@ export default function ItemDetail() {
   const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [openedNote, setOpenedNote] = useState(null)
 
   useEffect(() => {
     api.get('/items').then(({ data }) => setItems(data)).finally(() => setLoading(false))
@@ -54,6 +57,23 @@ export default function ItemDetail() {
     finally { setBusy(false) }
   }
   const patch = (changes) => run(() => api.patch(`/items/${item._id}`, changes), ({ data }) => setItem(data))
+
+  // Opened: with Plus the use-by date moves to how long it keeps once opened (if that's sooner)
+  const markOpened = () => run(async () => {
+    const changes = { openedAt: new Date().toISOString() }
+    let note = null
+    if (isPlus(user)) {
+      const [s] = await fetchSuggestions([{ name: item.name, category: item.category, location, opened: true }])
+      const date = s && inDays(s.days)
+      if (date && date < item.expiryDate.slice(0, 10)) {
+        changes.expiryDate = date
+        note = { previous: item.expiryDate.slice(0, 10), days: s.days, date }
+      }
+    }
+    const { data } = await api.patch(`/items/${item._id}`, changes)
+    return { data, note }
+  }, ({ data, note }) => { setItem(data); setOpenedNote(note) })
+  const undoOpenedDate = () => run(() => api.patch(`/items/${item._id}`, { expiryDate: openedNote.previous }), ({ data }) => { setItem(data); setOpenedNote(null) })
   // Done with this batch: continue with the next one of the same product, if any
   const finish = (action) => run(() => finishItem(item, action), () => {
     const next = batches.find((b) => b._id !== item._id)
@@ -75,6 +95,12 @@ export default function ItemDetail() {
       </div>
 
       {error && <div className="alert alert-error" role="alert">{error}</div>}
+      {openedNote && (
+        <div className="alert alert-success smart-note" role="status">
+          <span><span className="plus-badge">Plus</span>{t('smart.openedMoved', { count: openedNote.days, date: formatDate(openedNote.date, i18n.language) })}</span>
+          <button type="button" className="text-link" onClick={undoOpenedDate} disabled={busy}>{t('detail.undo')}</button>
+        </div>
+      )}
 
       <section className="card" aria-labelledby="fresh-title">
         <div className="card-head">
@@ -166,7 +192,7 @@ export default function ItemDetail() {
                 <button type="button" className="text-link" onClick={() => patch({ openedAt: null })} disabled={busy}>{t('detail.undo')}</button>
               </span>
             ) : (
-              <button type="button" className="btn btn-secondary btn-sm" onClick={() => patch({ openedAt: new Date().toISOString() })} disabled={busy}>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={markOpened} disabled={busy}>
                 {t('detail.markOpened')}
               </button>
             )}

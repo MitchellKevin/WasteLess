@@ -145,7 +145,24 @@
     "include": "Include {{name}}",
     "nameFor": "Name of item {{n}}",
     "expiryFor": "Expiry date for {{name}}",
-    "remove": "Remove {{name}}"
+    "remove": "Remove {{name}}",
+    "matching": "Recognising products…",
+    "readError": "The photo couldn't be read. Try again with a sharper photo.",
+    "tips": "Tip: lay the receipt flat in good light and photograph it straight from above, with the whole receipt in view.",
+    "foundAt": "Found {{count}} products at {{store}} — check and add",
+    "smartNote": "Dates and storage places are filled in for you. Check the ones marked “check”.",
+    "qty": "Qty",
+    "check": "check",
+    "store": {
+      "ah": "Albert Heijn",
+      "jumbo": "Jumbo",
+      "lidl": "Lidl",
+      "plus": "Plus",
+      "aldi": "Aldi",
+      "dirk": "Dirk",
+      "coop": "Coop",
+      "spar": "Spar"
+    }
   },
   "auth": {
     "welcomeBack": "Welcome back",
@@ -517,7 +534,8 @@
       "receipt": "Scan a whole receipt in one go",
       "bulk": "Bulk add by scanning item after item",
       "unlimited": "Unlimited products and household members",
-      "report": "Money and CO₂ saved reports"
+      "report": "Money and CO₂ saved reports",
+      "smart": "Expiry dates filled in for you, learning from your kitchen"
     },
     "freeLimits": "Free: up to {{items}} products and {{members}} members",
     "choosePlan": "Choose a plan",
@@ -604,5 +622,16 @@
     "add": "Add another batch",
     "existing_one": "You already have this ({{count}} batch, soonest {{when}}). It will be added as another batch with its own date.",
     "existing_other": "You already have this ({{count}} batches, soonest {{when}}). It will be added as another batch with its own date."
+  },
+  "smart": {
+    "history_one": "based on the last time you added this",
+    "history_other": "based on your last {{count}} times",
+    "guide": "typical for this product in the {{place}}",
+    "suggested": "Date filled in for you, {{reason}}.",
+    "wouldSuggest": "Plus would suggest {{date}}.",
+    "use": "Use that",
+    "teaser": "Plus fills in the date for you",
+    "openedMoved_one": "Opened, so it keeps about {{count}} more day: use by moved to {{date}}.",
+    "openedMoved_other": "Opened, so it keeps about {{count}} more days: use by moved to {{date}}."
   }
 }

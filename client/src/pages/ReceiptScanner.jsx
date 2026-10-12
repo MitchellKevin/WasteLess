@@ -6,60 +6,13 @@ import AddTabs from '../components/AddTabs'
 import { PlusCard } from '../components/PlusGate'
 import { useAuth } from '../context/AuthContext'
 import { isPlus } from '../lib/plan'
+import { LOCATIONS, productKey } from '../lib/items'
+import { readReceiptText } from '../lib/ocr'
+import { parseReceipt } from '../lib/receipt'
+import { fetchSuggestions, inDays } from '../lib/suggest'
 import { CameraIcon, UploadIcon, CloseIcon } from '../components/Icons'
 
-// Tesseract drops commas and OCRs Dutch tax codes as digits (B→8, BB→88)
-// e.g. "23,97 B" → "23978", "3,02 BB" → "30288"
-// Fix: strip trailing 8s while the implied price (digits/100) exceeds €50
-function normalizeOcrPrice(digits) {
-  let s = digits
-  while (s.length > 3 && parseInt(s, 10) / 100 > 50 && s.endsWith('8')) {
-    s = s.slice(0, -1)
-  }
-  return parseInt(s, 10) / 100
-}
-
-function parseReceipt(text) {
-  const lines = text.split('\n').map((l) => l.trim()).filter((l) => l.length > 2)
-  const SKIP = ['totaal', 'total', 'btw', 'vat', 'subtotaal', 'subtotal', 'korting',
-    'discount', 'pinnen', 'pin', 'wisselgeld', 'change', 'bedankt', 'thank',
-    'kassabon', 'receipt', 'kassier', 'cashier', 'openingstijden', 'statiegeld',
-    'bonuskaart', 'airmiles', 'spaarkaart', 'klantenkaart',
-    'omschrijving', 'omschrumng', 'aantal', 'antal', 'bedrag', 'prijs', '%']
-
-  const items = []
-
-  for (const line of lines) {
-    const lower = line.toLowerCase()
-    if (SKIP.some((w) => lower.includes(w))) continue
-
-    const digitSeqs = line.match(/\d+/g)
-    if (!digitSeqs || digitSeqs.length === 0) continue
-
-    // Last digit sequence = BEDRAG (total price column)
-    const rawPrice = digitSeqs[digitSeqs.length - 1]
-    if (rawPrice.length >= 6) continue  // loyalty card / store numbers, not prices
-
-    const price = normalizeOcrPrice(rawPrice)
-    if (price < 0.10 || price > 499) continue
-
-    // Name = line stripped of all digits and punctuation
-    const name = line
-      .replace(/\d+/g, ' ')
-      .replace(/[^\w\s]/g, ' ')
-      .trim()
-      .replace(/\s+/g, ' ')
-
-    if (name.length < 2) continue
-
-    items.push({ name: toTitleCase(name), price, expiryDate: '', selected: true })
-  }
-  return items
-}
-
-function toTitleCase(str) {
-  return str.toLowerCase().replace(/(?:^|\s)\S/g, (c) => c.toUpperCase())
-}
+const FALLBACK_DAYS = 7 // when smart dates don't recognise a product
 
 async function pdfToImageFile(pdfFile) {
   const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist')
@@ -95,6 +48,22 @@ async function pdfToImageFile(pdfFile) {
   return new File([blob], 'receipt.png', { type: 'image/png' })
 }
 
+// Smart dates for every line: expiry date and storage place
+async function withSuggestions(items) {
+  const suggestions = await fetchSuggestions(items.map((it) => ({ name: it.name })))
+  return items.map((it, i) => {
+    const s = suggestions[i]
+    return {
+      ...it,
+      selected: true,
+      location: s?.location || 'fridge',
+      expiryDate: inDays(s ? s.days : FALLBACK_DAYS),
+      dateSource: s ? 'suggested' : 'default',
+      recognised: Boolean(s),
+    }
+  })
+}
+
 export default function ReceiptScanner() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -105,41 +74,37 @@ export default function ReceiptScanner() {
   const [status, setStatus] = useState('')
   const [progress, setProgress] = useState(0)
   const [items, setItems] = useState([])
+  const [store, setStore] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
   const [rawText, setRawText] = useState('')
   const [showRaw, setShowRaw] = useState(false)
   const [preview, setPreview] = useState(null)
 
   const processFile = async (file) => {
-    setItems([])
-    setRawText('')
-    setProgress(0)
+    setItems([]); setRawText(''); setError(''); setStore(null); setProgress(0)
     setStatus(t('receipt.downloading'))
-
-    let imageFile = file
-    if (file.type === 'application/pdf') {
-      setStatus(t('receipt.convertingPdf'))
-      imageFile = await pdfToImageFile(file)
+    try {
+      let imageFile = file
+      if (file.type === 'application/pdf') {
+        setStatus(t('receipt.convertingPdf'))
+        imageFile = await pdfToImageFile(file)
+      }
+      setPreview(URL.createObjectURL(imageFile))
+      const text = await readReceiptText(imageFile, (pct) => {
+        setProgress(pct)
+        setStatus(t('receipt.processing', { progress: pct }))
+      })
+      setRawText(text)
+      const parsed = parseReceipt(text)
+      setStore(parsed.store)
+      setStatus(t('receipt.matching'))
+      setItems(await withSuggestions(parsed.items))
+    } catch (err) {
+      setError(t('receipt.readError'))
+    } finally {
+      setStatus('')
     }
-
-    setPreview(URL.createObjectURL(imageFile))
-
-    const { createWorker } = await import('tesseract.js')
-    const worker = await createWorker(['eng', 'nld'], 1, {
-      logger: (m) => {
-        if (m.status === 'recognizing text') {
-          setProgress(Math.round(m.progress * 100))
-          setStatus(t('receipt.processing', { progress: Math.round(m.progress * 100) }))
-        }
-      },
-    })
-
-    const { data: { text } } = await worker.recognize(imageFile)
-    await worker.terminate()
-
-    setRawText(text)
-    setItems(parseReceipt(text))
-    setStatus('')
   }
 
   const handleFile = (e) => {
@@ -148,44 +113,38 @@ export default function ReceiptScanner() {
     if (file) processFile(file)
   }
 
-  const toggle = (i) => setItems((prev) => prev.map((it, idx) => idx === i ? { ...it, selected: !it.selected } : it))
-  const setName = (i, v) => setItems((prev) => prev.map((it, idx) => idx === i ? { ...it, name: v } : it))
-  const setPrice = (i, v) => setItems((prev) => prev.map((it, idx) => idx === i ? { ...it, price: v } : it))
-  const setExpiry = (i, v) => setItems((prev) => prev.map((it, idx) => idx === i ? { ...it, expiryDate: v } : it))
+  const update = (i, changes) => setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, ...changes } : it)))
   const remove = (i) => setItems((prev) => prev.filter((_, idx) => idx !== i))
+  // A corrected name may now be recognised: refresh its date and place (unless set by hand)
+  const renamed = async (i) => {
+    const it = items[i]
+    if (!it || it.dateSource === 'manual') return
+    const [s] = await fetchSuggestions([{ name: it.name }])
+    if (s) update(i, { location: s.location, expiryDate: inDays(s.days), dateSource: 'suggested', recognised: true })
+  }
 
   const selected = items.filter((it) => it.selected)
   const allSelected = items.length > 0 && items.every((it) => it.selected)
   const toggleAll = () => setItems((prev) => prev.map((it) => ({ ...it, selected: !allSelected })))
 
   const handleSave = async () => {
-    setSaving(true)
+    setSaving(true); setError('')
     try {
       const { data: existing } = await api.get('/items')
-      const fallbackExpiry = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10)
-
-      await Promise.all(
-        selected.map((it) => {
-          const resolvedExpiry = it.expiryDate || fallbackExpiry
-          const match = existing.find(
-            (e) =>
-              e.name.toLowerCase() === it.name.toLowerCase() &&
-              e.expiryDate.slice(0, 10) === resolvedExpiry
-          )
-          if (match) {
-            return api.patch(`/items/${match._id}`, { quantity: match.quantity + 1 })
-          }
-          return api.post('/items', {
-            name: it.name,
-            quantity: 1,
-            unit: 'item',
-            price: Number(it.price) || 0,
-            expiryDate: resolvedExpiry,
-          })
+      // Same product with the same date already in the pantry: add to it instead of a new batch
+      for (const it of selected) {
+        const match = existing.find((e) => productKey(e.name) === productKey(it.name) && e.expiryDate.slice(0, 10) === it.expiryDate && e.unit === it.unit)
+        if (match) await api.patch(`/items/${match._id}`, { quantity: Math.round((match.quantity + it.quantity) * 1000) / 1000 })
+        else await api.post('/items', {
+          name: it.name, quantity: it.quantity, unit: it.unit, price: Number(it.price) || 0,
+          expiryDate: it.expiryDate, location: it.location, dateSource: it.dateSource,
         })
-      )
-      navigate('/')
-    } finally { setSaving(false) }
+      }
+      navigate('/pantry')
+    } catch (err) {
+      setError(err.response?.data?.message || t('common.error'))
+      setSaving(false)
+    }
   }
 
   if (!isPlus(user)) {
@@ -206,66 +165,73 @@ export default function ReceiptScanner() {
       <div className="receipt-upload">
         <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handleFile} hidden />
         <input ref={uploadRef} type="file" accept="image/*,application/pdf" onChange={handleFile} hidden />
-        <button type="button" className="btn btn-primary" onClick={() => fileRef.current.click()}>
+        <button type="button" className="btn btn-primary" onClick={() => fileRef.current.click()} disabled={!!status}>
           <CameraIcon size={20} />{t('receipt.capture')}
         </button>
-        <button type="button" className="btn btn-secondary" onClick={() => uploadRef.current.click()}>
+        <button type="button" className="btn btn-secondary" onClick={() => uploadRef.current.click()} disabled={!!status}>
           <UploadIcon size={20} />{t('receipt.upload')}
         </button>
       </div>
+      {!items.length && !status && <p className="form-hint">{t('receipt.tips')}</p>}
 
-      {preview && !status && (
-        <img src={preview} alt={t('receipt.title')} className="receipt-preview" />
-      )}
+      {preview && !status && !items.length && <img src={preview} alt={t('receipt.title')} className="receipt-preview" />}
 
       {status && (
         <div className="receipt-status" aria-live="polite">
-          <div className="ocr-progress-bar">
-            <div className="ocr-progress-fill" style={{ width: `${progress}%` }} />
-          </div>
+          <div className="ocr-progress-bar"><div className="ocr-progress-fill" style={{ width: `${progress}%` }} /></div>
           <p className="lookup-status">{status}</p>
         </div>
       )}
 
+      {error && <div className="alert alert-error" role="alert">{error}</div>}
+
       {!status && items.length === 0 && rawText && (
-        <>
-          <div className="alert alert-warning" role="alert">{t('receipt.notFound')}</div>
-          <div style={{ marginTop: '1rem' }}>
-            <button type="button" className="btn btn-ghost btn-sm" aria-expanded={showRaw} onClick={() => setShowRaw((v) => !v)}>
-              {t('receipt.rawText')}
-            </button>
-            {showRaw && <pre className="raw-text">{rawText}</pre>}
-          </div>
-        </>
+        <div className="alert alert-warning" role="alert">{t('receipt.notFound')}</div>
       )}
 
       {items.length > 0 && (
         <>
           <div className="receipt-toolbar">
-            <p className="section-title">{t('receipt.found', { count: items.length })}</p>
+            <p className="section-title">
+              {store ? t('receipt.foundAt', { count: items.length, store: t(`receipt.store.${store}`) }) : t('receipt.found', { count: items.length })}
+            </p>
             <button type="button" className="btn btn-ghost btn-sm" onClick={toggleAll}>
               {allSelected ? t('receipt.deselectAll') : t('receipt.selectAll')}
             </button>
           </div>
+          <p className="form-hint smart-hint"><span className="plus-badge">Plus</span>{t('receipt.smartNote')}</p>
 
-          <div className="receipt-items">
-            <div className="receipt-item-header" aria-hidden="true">
-              <span></span>
-              <span>{t('receipt.name')}</span>
-              <span>{t('receipt.expiry')}</span>
-              <span>{t('receipt.price')}</span>
-              <span></span>
-            </div>
+          <ul className="receipt-list">
             {items.map((it, i) => (
-              <div key={i} className={`receipt-item ${!it.selected ? 'deselected' : ''}`}>
-                <input type="checkbox" checked={it.selected} onChange={() => toggle(i)} aria-label={t('receipt.include', { name: it.name })} />
-                <input className="receipt-name-input" value={it.name} onChange={(e) => setName(i, e.target.value)} aria-label={t('receipt.nameFor', { n: i + 1 })} />
-                <input type="date" className="receipt-expiry-input" value={it.expiryDate} onChange={(e) => setExpiry(i, e.target.value)} aria-label={t('receipt.expiryFor', { name: it.name })} />
-                <span className="receipt-price">€{Number(it.price).toFixed(2)}</span>
-                <button type="button" className="btn-icon btn-icon--danger" onClick={() => remove(i)} aria-label={t('receipt.remove', { name: it.name })}><CloseIcon size={18} /></button>
-              </div>
+              <li key={i} className={`receipt-row${it.selected ? '' : ' deselected'}`}>
+                <div className="receipt-row-top">
+                  <input type="checkbox" checked={it.selected} onChange={() => update(i, { selected: !it.selected })} aria-label={t('receipt.include', { name: it.name })} />
+                  <input className="receipt-name-input" value={it.name} onChange={(e) => update(i, { name: e.target.value })} onBlur={() => renamed(i)}
+                    aria-label={t('receipt.nameFor', { n: i + 1 })} />
+                  <span className="receipt-price">€{Number(it.price).toFixed(2)}</span>
+                  <button type="button" className="btn-icon btn-icon--danger" onClick={() => remove(i)} aria-label={t('receipt.remove', { name: it.name })}><CloseIcon size={18} /></button>
+                </div>
+                <div className="receipt-row-details">
+                  <label className="receipt-field">
+                    <span>{t('receipt.qty')}</span>
+                    <input type="number" inputMode="decimal" min="0" step="any" value={it.quantity}
+                      onChange={(e) => update(i, { quantity: Number(e.target.value) })} />
+                    {it.unit === 'kg' && <span className="receipt-unit">kg</span>}
+                  </label>
+                  <label className="receipt-field">
+                    <span>{t('detail.storedIn')}</span>
+                    <select value={it.location} onChange={(e) => update(i, { location: e.target.value })}>
+                      {LOCATIONS.map((l) => <option key={l} value={l}>{t(`location.${l}`)}</option>)}
+                    </select>
+                  </label>
+                  <label className="receipt-field">
+                    <span>{t('receipt.expiry')}{!it.recognised && it.dateSource !== 'manual' && <span className="receipt-check"> · {t('receipt.check')}</span>}</span>
+                    <input type="date" value={it.expiryDate} onChange={(e) => update(i, { expiryDate: e.target.value, dateSource: 'manual' })} />
+                  </label>
+                </div>
+              </li>
             ))}
-          </div>
+          </ul>
 
           {selected.length > 0 && (
             <div className="form-actions">
@@ -275,16 +241,14 @@ export default function ReceiptScanner() {
               </button>
             </div>
           )}
-
-          {rawText && (
-            <div style={{ marginTop: '1rem' }}>
-              <button type="button" className="btn btn-ghost btn-sm" aria-expanded={showRaw} onClick={() => setShowRaw((v) => !v)}>
-                {t('receipt.rawText')}
-              </button>
-              {showRaw && <pre className="raw-text">{rawText}</pre>}
-            </div>
-          )}
         </>
+      )}
+
+      {rawText && (
+        <div className="raw-toggle">
+          <button type="button" className="btn btn-ghost btn-sm" aria-expanded={showRaw} onClick={() => setShowRaw((v) => !v)}>{t('receipt.rawText')}</button>
+          {showRaw && <pre className="raw-text">{rawText}</pre>}
+        </div>
       )}
     </div>
   )

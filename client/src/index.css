@@ -530,17 +530,9 @@ button, input, select, textarea { font-family: inherit; }
 .ocr-progress-bar { height: 6px; background: var(--track); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
 .ocr-progress-fill { height: 100%; background: var(--primary); transition: width .3s; }
 .receipt-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
-.receipt-items { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; margin-bottom: 16px; }
-.receipt-item-header { display: grid; grid-template-columns: 24px 1fr 120px auto 30px; gap: 8px; padding: 10px 12px; background: var(--bg); font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; }
-.receipt-item { display: grid; grid-template-columns: 24px 1fr 120px auto 30px; gap: 8px; padding: 8px 12px; align-items: center; border-top: 1px solid var(--track); transition: opacity .15s; }
-.receipt-expiry-input,
 .receipt-name-input { border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--text); padding: 6px 8px; width: 100%; }
-.receipt-expiry-input { font-size: 0.8125rem; }
 .receipt-name-input { font-size: 0.9375rem; font-weight: 500; }
-.receipt-expiry-input:focus,
 .receipt-name-input:focus { outline: none; border-color: var(--primary); background: var(--input-bg); }
-.receipt-item.deselected { opacity: .4; }
-.receipt-item input[type="checkbox"] { accent-color: var(--primary); width: 18px; height: 18px; }
 .receipt-price { font-size: 0.875rem; color: var(--text-muted); white-space: nowrap; }
 .raw-text { margin-top: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; font-size: 0.75rem; color: var(--text-muted); white-space: pre-wrap; max-height: 200px; overflow-y: auto; }
 
@@ -1037,6 +1029,32 @@ button.settings-row:first-child { border-top: none; }
 .legal-section p { line-height: 1.6; color: var(--text-body); }
 .auth-terms { text-align: center; font-size: 0.8125rem; color: var(--text-muted); margin-top: 16px; line-height: 1.5; }
 .auth-terms a { color: var(--primary-text); font-weight: 700; }
+
+/* ── Smart expiry dates ── */
+.smart-hint { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; font-size: 0.8125rem; color: var(--ok-text); font-weight: 500; }
+.smart-hint .plus-badge { align-self: center; }
+.smart-hint .text-link { min-height: 44px; margin: -10px 0; }
+.smart-hint--teaser .text-link { font-weight: 700; }
+.smart-note { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.smart-note .plus-badge { margin-right: 8px; }
+
+/* ── Receipt review ── */
+.receipt-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.receipt-row { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 8px 8px 12px 12px; display: flex; flex-direction: column; gap: 8px; }
+.receipt-row.deselected { opacity: .5; }
+.receipt-row-top { display: flex; align-items: center; gap: 8px; }
+.receipt-row-top input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary); flex: none; }
+.receipt-row-top .receipt-name-input { flex: 1; min-width: 0; font-weight: 700; font-size: 1rem; min-height: 44px; }
+.receipt-row-details { display: grid; grid-template-columns: 60px minmax(0, 1fr) minmax(0, 1.55fr); gap: 6px; padding-left: 28px; }
+.receipt-field input[type="date"] { padding: 0 6px; font-size: 0.875rem; }
+.receipt-field { display: flex; flex-direction: column; gap: 2px; font-size: 0.75rem; color: var(--text-muted); font-weight: 700; position: relative; }
+.receipt-field input, .receipt-field select {
+  min-height: 44px; width: 100%; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: var(--input-bg); color: var(--text); font-size: 0.9375rem; font-weight: 500;
+}
+.receipt-unit { position: absolute; right: 10px; bottom: 12px; color: var(--text-muted); font-weight: 500; }
+.receipt-check { color: var(--warn-text); }
+.raw-toggle { margin-top: 16px; }
 
 /* ── Responsive ── */
 @media (max-width: 600px) {

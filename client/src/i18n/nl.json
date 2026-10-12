@@ -145,7 +145,24 @@
     "include": "{{name}} meenemen",
     "nameFor": "Naam van item {{n}}",
     "expiryFor": "Vervaldatum voor {{name}}",
-    "remove": "{{name}} verwijderen"
+    "remove": "{{name}} verwijderen",
+    "matching": "Producten herkennen…",
+    "readError": "De foto kon niet worden gelezen. Probeer het opnieuw met een scherpere foto.",
+    "tips": "Tip: leg de bon plat in goed licht en fotografeer recht van boven, met de hele bon in beeld.",
+    "foundAt": "{{count}} producten gevonden bij {{store}} — controleer en voeg toe",
+    "smartNote": "Datums en bewaarplekken zijn voor je ingevuld. Kijk de items met “controleer” even na.",
+    "qty": "Aantal",
+    "check": "controleer",
+    "store": {
+      "ah": "Albert Heijn",
+      "jumbo": "Jumbo",
+      "lidl": "Lidl",
+      "plus": "Plus",
+      "aldi": "Aldi",
+      "dirk": "Dirk",
+      "coop": "Coop",
+      "spar": "Spar"
+    }
   },
   "auth": {
     "welcomeBack": "Welkom terug",
@@ -521,7 +538,8 @@
       "receipt": "Een hele kassabon in één keer scannen",
       "bulk": "In bulk toevoegen door item na item te scannen",
       "unlimited": "Onbeperkt producten en huishoudleden",
-      "report": "Rapporten met bespaard geld en CO₂"
+      "report": "Rapporten met bespaard geld en CO₂",
+      "smart": "Houdbaarheidsdatums voor je ingevuld, lerend van jouw keuken"
     },
     "freeLimits": "Gratis: tot {{items}} producten en {{members}} leden",
     "choosePlan": "Kies een abonnement",
@@ -608,5 +626,16 @@
     "add": "Nog een partij toevoegen",
     "existing_one": "Dit heb je al ({{count}} partij, eerstvolgende {{when}}). Het wordt toegevoegd als nieuwe partij met een eigen datum.",
     "existing_other": "Dit heb je al ({{count}} partijen, eerstvolgende {{when}}). Het wordt toegevoegd als nieuwe partij met een eigen datum."
+  },
+  "smart": {
+    "history_one": "op basis van de vorige keer dat je dit toevoegde",
+    "history_other": "op basis van je laatste {{count}} keer",
+    "guide": "gebruikelijk voor dit product in de {{place}}",
+    "suggested": "Datum voor je ingevuld, {{reason}}.",
+    "wouldSuggest": "Plus zou {{date}} voorstellen.",
+    "use": "Gebruik die",
+    "teaser": "Plus vult de datum voor je in",
+    "openedMoved_one": "Geopend, dus nog ongeveer {{count}} dag goed: houdbaar tot verschoven naar {{date}}.",
+    "openedMoved_other": "Geopend, dus nog ongeveer {{count}} dagen goed: houdbaar tot verschoven naar {{date}}."
   }
 }

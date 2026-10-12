@@ -6,6 +6,8 @@ import AddTabs from '../components/AddTabs'
 import { PlusCard } from '../components/PlusGate'
 import { useAuth } from '../context/AuthContext'
 import { isPlus } from '../lib/plan'
+import { fetchSuggestions, inDays, suggestionReason } from '../lib/suggest'
+import { LOCATIONS } from '../lib/items'
 import { CloseIcon, BarcodeIcon } from '../components/Icons'
 import { useTranslation } from 'react-i18next'
 
@@ -41,7 +43,17 @@ const emptyItem = (info = {}) => ({
   unit: 'item',
   expiryDate: '',
   price: '',
+  location: 'fridge',
+  dateSource: 'default',
+  suggestion: null,
 })
+
+// Fill in date and storage place with smart expiry dates (bulk add is Plus-only)
+async function withSuggestion(item) {
+  if (!item.name) return item
+  const [s] = await fetchSuggestions([{ name: item.name, category: item.category }])
+  return s ? { ...item, expiryDate: inDays(s.days), location: s.location, dateSource: 'suggested', suggestion: s } : item
+}
 
 export default function BulkAdd() {
   const { t } = useTranslation()
@@ -58,7 +70,7 @@ export default function BulkAdd() {
     setScanning(false)
     setLookingUp(true)
     const info = await lookupBarcode(code)
-    setCurrent(emptyItem({ ...info, barcode: code }))
+    setCurrent(await withSuggestion(emptyItem({ ...info, barcode: code })))
     setLookingUp(false)
   }, [])
 
@@ -78,7 +90,7 @@ export default function BulkAdd() {
     setSaving(true)
     setError('')
     try {
-      await Promise.all(pending.map((item) => api.post('/items', { ...item, price: Number(item.price) || 0 })))
+      await Promise.all(pending.map(({ suggestion, ...item }) => api.post('/items', { ...item, price: Number(item.price) || 0 })))
       navigate('/')
     } catch {
       setError(t('bulk.error'))
@@ -141,7 +153,8 @@ export default function BulkAdd() {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="bulk-name">{t('add.name')} *</label>
-              <input id="bulk-name" type="text" value={current.name} onChange={setField('name')} required placeholder={t('bulk.namePlaceholder')} />
+              <input id="bulk-name" type="text" value={current.name} onChange={setField('name')} required placeholder={t('bulk.namePlaceholder')}
+                onBlur={async () => { if (current.dateSource === 'default' && current.name.trim().length >= 2) { const next = await withSuggestion(current); setCurrent((c) => (c && c.dateSource === 'default' ? { ...c, ...next, name: c.name } : c)) } }} />
             </div>
             <div className="form-group">
               <label htmlFor="bulk-category">{t('add.category')}</label>
@@ -151,7 +164,17 @@ export default function BulkAdd() {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="bulk-expiry">{t('add.expiry')} *</label>
-              <input id="bulk-expiry" type="date" value={current.expiryDate} onChange={setField('expiryDate')} required />
+              <input id="bulk-expiry" type="date" value={current.expiryDate} required
+                onChange={(e) => setCurrent((c) => ({ ...c, expiryDate: e.target.value, dateSource: 'manual' }))} />
+              {current.suggestion && current.dateSource === 'suggested' && (
+                <span className="smart-hint"><span className="plus-badge">Plus</span>{t('smart.suggested', { reason: suggestionReason(t, current.suggestion) })}</span>
+              )}
+            </div>
+            <div className="form-group">
+              <label htmlFor="bulk-location">{t('detail.storedIn')}</label>
+              <select id="bulk-location" value={current.location} onChange={setField('location')}>
+                {LOCATIONS.map((l) => <option key={l} value={l}>{t(`location.${l}`)}</option>)}
+              </select>
             </div>
             <div className="form-group">
               <label htmlFor="bulk-qty">{t('bulk.qty')}</label>

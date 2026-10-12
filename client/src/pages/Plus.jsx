@@ -8,7 +8,7 @@ import { isNative, platform, openExternal, LEGAL, STORE_LINKS, MANAGE_SUBSCRIPTI
 import { purchasesAvailable, getPlans, buy, restore, managementUrl } from '../lib/purchases'
 import { CloseIcon, CheckIcon, LeafIcon } from '../components/Icons'
 
-const FEATURES = ['receipt', 'bulk', 'unlimited', 'report']
+const FEATURES = ['smart', 'receipt', 'bulk', 'unlimited', 'report']
 const STORE_OF_PLATFORM = { ios: 'app_store', android: 'play_store' }
 
 // "7 days free" from the store's introductory offer, if it is a free trial

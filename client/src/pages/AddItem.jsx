@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import api from '../api/axios'
 import { lookupBarcode } from '../api/lookup'
@@ -8,10 +8,12 @@ import AddTabs from '../components/AddTabs'
 import { LOCATIONS, formatDate, productKey, groupProducts, expiryLabel, daysUntil } from '../lib/items'
 import { BarcodeIcon } from '../components/Icons'
 import { PlusCard } from '../components/PlusGate'
+import { useAuth } from '../context/AuthContext'
+import { isPlus } from '../lib/plan'
+import { inDays, useExpirySuggestion, suggestionReason } from '../lib/suggest'
 
 const EMPTY = { name: '', barcode: '', category: '', quantity: 1, unit: 'item', expiryDate: '', imageUrl: '', price: '', notes: '', nutrients: null, location: 'fridge' }
 const QUICK_DAYS = [3, 7, 14]
-const inDays = (n) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10)
 
 export default function AddItem() {
   const { t, i18n } = useTranslation()
@@ -36,6 +38,25 @@ export default function AddItem() {
   const [error, setError] = useState('')
   const [limitReached, setLimitReached] = useState(false)
   const [saving, setSaving] = useState(false)
+  const { user } = useAuth()
+  const plus = isPlus(user)
+  // Smart expiry dates (Plus) fill in the date and place until the user picks them themselves
+  const [dateTouched, setDateTouched] = useState(false)
+  const [locationTouched, setLocationTouched] = useState(Boolean(params.get('location')))
+  const suggestion = useExpirySuggestion({ name: form.name, category: form.category, location: locationTouched ? form.location : undefined, enabled: plus })
+  useEffect(() => {
+    if (!suggestion) return
+    setForm((f) => ({
+      ...f,
+      ...(dateTouched ? {} : { expiryDate: inDays(suggestion.days) }),
+      ...(locationTouched ? {} : { location: suggestion.location }),
+    }))
+    if (!dateTouched) setPickDate(false)
+  }, [suggestion])
+  const applySuggestion = () => {
+    setDateTouched(false); setPickDate(false)
+    setForm((f) => ({ ...f, expiryDate: inDays(suggestion.days) }))
+  }
 
   const set = (k) => (e) =>
     setForm((f) => ({ ...f, [k]: e.target.type === 'number' ? Number(e.target.value) : e.target.value }))
@@ -57,7 +78,8 @@ export default function AddItem() {
     setSaving(true)
     try {
       // A new batch of something you already have keeps that product's spelling
-      await api.post('/items', { ...form, name: existing ? existing.name : form.name.trim(), price: Number(form.price) || 0 })
+      const dateSource = dateTouched ? 'manual' : suggestion ? 'suggested' : 'default'
+      await api.post('/items', { ...form, name: existing ? existing.name : form.name.trim(), price: Number(form.price) || 0, dateSource })
       navigate('/')
     } catch (err) {
       if (err.response?.data?.code === 'limit_items') setLimitReached(err.response.data.limit)
@@ -107,18 +129,30 @@ export default function AddItem() {
             {QUICK_DAYS.map((n) => (
               <button key={n} type="button" className={`chip${!pickDate && form.expiryDate === inDays(n) ? ' active' : ''}`}
                 aria-pressed={!pickDate && form.expiryDate === inDays(n)}
-                onClick={() => { setPickDate(false); setForm((f) => ({ ...f, expiryDate: inDays(n) })) }}>
+                onClick={() => { setPickDate(false); setDateTouched(true); setForm((f) => ({ ...f, expiryDate: inDays(n) })) }}>
                 {n % 7 === 0 ? t('add.quickWeeks', { count: n / 7 }) : t('add.quickDays', { count: n })}
               </button>
             ))}
-            <button type="button" className={`chip${pickDate ? ' active' : ''}`} aria-pressed={pickDate} onClick={() => setPickDate(true)}>
+            <button type="button" className={`chip${pickDate ? ' active' : ''}`} aria-pressed={pickDate} onClick={() => { setPickDate(true); setDateTouched(true) }}>
               {t('add.pickDate')}
             </button>
           </div>
           {pickDate ? (
-            <input id="add-expiry" type="date" aria-label={t('add.expiry')} value={form.expiryDate} onChange={set('expiryDate')} required />
+            <input id="add-expiry" type="date" aria-label={t('add.expiry')} value={form.expiryDate} onChange={(e) => { setDateTouched(true); set('expiryDate')(e) }} required />
           ) : (
             form.expiryDate && <span className="form-hint">{formatDate(form.expiryDate, i18n.language, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+          )}
+          {plus && suggestion && !dateTouched && (
+            <span className="smart-hint" role="status"><span className="plus-badge">Plus</span>{t('smart.suggested', { reason: suggestionReason(t, suggestion) })}</span>
+          )}
+          {plus && suggestion && dateTouched && form.expiryDate !== inDays(suggestion.days) && (
+            <span className="smart-hint">
+              <span className="plus-badge">Plus</span>{t('smart.wouldSuggest', { date: formatDate(inDays(suggestion.days), i18n.language) })}
+              <button type="button" className="text-link" onClick={applySuggestion}>{t('smart.use')}</button>
+            </span>
+          )}
+          {!plus && form.name.trim().length >= 2 && (
+            <span className="smart-hint smart-hint--teaser"><span className="plus-badge">Plus</span><Link to="/plus" className="text-link">{t('smart.teaser')}</Link></span>
           )}
         </fieldset>
         <fieldset className="form-group">
@@ -127,7 +161,7 @@ export default function AddItem() {
             {LOCATIONS.map((l) => (
               <button key={l} type="button" role="radio" aria-checked={form.location === l}
                 className={`chip${form.location === l ? ' active' : ''}`}
-                onClick={() => setForm((f) => ({ ...f, location: l }))}>
+                onClick={() => { setLocationTouched(true); setForm((f) => ({ ...f, location: l })) }}>
                 {t(`location.${l}`)}
               </button>
             ))}
