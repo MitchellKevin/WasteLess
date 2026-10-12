@@ -54,7 +54,11 @@ if (isProduction) {
   app.get('*', (req, res) => res.sendFile(path.join(dist, 'index.html')))
 }
 
-const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+const server = app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+  // Report in the log whether password reset emails can be sent
+  require('./lib/mail').checkMail()
+})
 
 // Render stops the old instance with SIGTERM on every deploy
 process.on('SIGTERM', () => {
