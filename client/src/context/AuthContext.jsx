@@ -1,5 +1,6 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import api from '../api/axios'
+import { identify, forget } from '../lib/purchases'
 
 const AuthContext = createContext(null)
 
@@ -24,14 +25,41 @@ export function AuthProvider({ children }) {
     persist(data.token, data.user)
   }
 
+  // Purchases belong to the logged-in WasteLess account
+  useEffect(() => {
+    if (user?.id) identify(user.id).catch(() => {})
+  }, [user?.id])
+
   const logout = () => {
+    forget()
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     setUser(null)
   }
 
+  const store = (next) => {
+    localStorage.setItem('user', JSON.stringify(next))
+    setUser(next)
+  }
+
+  const refreshUser = () =>
+    api.get('/auth/me')
+      .then(({ data }) => { store(data); return data })
+      .catch((err) => { if (err.response?.status === 401) logout() })
+
+  // Pick up preferences and Plus status (and catch expired sessions) on load
+  useEffect(() => {
+    if (localStorage.getItem('token')) refreshUser()
+  }, [])
+
+  const updateProfile = async (changes) => {
+    const { data } = await api.patch('/auth/me', changes)
+    store(data)
+    return data
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, refreshUser, setUser: store }}>
       {children}
     </AuthContext.Provider>
   )

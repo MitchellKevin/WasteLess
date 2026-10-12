@@ -2,6 +2,11 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import api from '../api/axios'
+import AddTabs from '../components/AddTabs'
+import { PlusCard } from '../components/PlusGate'
+import { useAuth } from '../context/AuthContext'
+import { isPlus } from '../lib/plan'
+import { CameraIcon, UploadIcon, CloseIcon } from '../components/Icons'
 
 // Tesseract drops commas and OCRs Dutch tax codes as digits (B→8, BB→88)
 // e.g. "23,97 B" → "23978", "3,02 BB" → "30288"
@@ -93,7 +98,9 @@ async function pdfToImageFile(pdfFile) {
 export default function ReceiptScanner() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const fileRef = useRef()
+  const uploadRef = useRef()
 
   const [status, setStatus] = useState('')
   const [progress, setProgress] = useState(0)
@@ -137,6 +144,7 @@ export default function ReceiptScanner() {
 
   const handleFile = (e) => {
     const file = e.target.files?.[0]
+    e.target.value = '' // allow picking the same file again
     if (file) processFile(file)
   }
 
@@ -180,26 +188,38 @@ export default function ReceiptScanner() {
     } finally { setSaving(false) }
   }
 
+  if (!isPlus(user)) {
+    return (
+      <div className="add-page">
+        <AddTabs />
+        <PlusCard title={t('plus.gate.receiptTitle')} desc={t('plus.gate.receiptDesc')} />
+      </div>
+    )
+  }
+
   return (
     <div className="add-page">
+      <AddTabs />
       <h2>{t('receipt.title')}</h2>
       <p className="page-subtitle">{t('receipt.subtitle')}</p>
 
       <div className="receipt-upload">
-        <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
-        <button className="btn btn-secondary" onClick={() => fileRef.current.click()}>
-          {t('receipt.capture')}
+        <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handleFile} hidden />
+        <input ref={uploadRef} type="file" accept="image/*,application/pdf" onChange={handleFile} hidden />
+        <button type="button" className="btn btn-primary" onClick={() => fileRef.current.click()}>
+          <CameraIcon size={20} />{t('receipt.capture')}
         </button>
-        <span className="upload-or">{t('receipt.orUpload')}</span>
-        <input type="file" accept="image/*,application/pdf" onChange={handleFile} className="file-input-plain" />
+        <button type="button" className="btn btn-secondary" onClick={() => uploadRef.current.click()}>
+          <UploadIcon size={20} />{t('receipt.upload')}
+        </button>
       </div>
 
       {preview && !status && (
-        <img src={preview} alt="Receipt" className="receipt-preview" />
+        <img src={preview} alt={t('receipt.title')} className="receipt-preview" />
       )}
 
       {status && (
-        <div className="receipt-status">
+        <div className="receipt-status" aria-live="polite">
           <div className="ocr-progress-bar">
             <div className="ocr-progress-fill" style={{ width: `${progress}%` }} />
           </div>
@@ -209,9 +229,9 @@ export default function ReceiptScanner() {
 
       {!status && items.length === 0 && rawText && (
         <>
-          <div className="alert alert-warning">{t('receipt.notFound')}</div>
+          <div className="alert alert-warning" role="alert">{t('receipt.notFound')}</div>
           <div style={{ marginTop: '1rem' }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => setShowRaw((v) => !v)}>
+            <button type="button" className="btn btn-ghost btn-sm" aria-expanded={showRaw} onClick={() => setShowRaw((v) => !v)}>
               {t('receipt.rawText')}
             </button>
             {showRaw && <pre className="raw-text">{rawText}</pre>}
@@ -223,13 +243,13 @@ export default function ReceiptScanner() {
         <>
           <div className="receipt-toolbar">
             <p className="section-title">{t('receipt.found', { count: items.length })}</p>
-            <button className="btn btn-ghost btn-sm" onClick={toggleAll}>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={toggleAll}>
               {allSelected ? t('receipt.deselectAll') : t('receipt.selectAll')}
             </button>
           </div>
 
           <div className="receipt-items">
-            <div className="receipt-item-header">
+            <div className="receipt-item-header" aria-hidden="true">
               <span></span>
               <span>{t('receipt.name')}</span>
               <span>{t('receipt.expiry')}</span>
@@ -238,19 +258,19 @@ export default function ReceiptScanner() {
             </div>
             {items.map((it, i) => (
               <div key={i} className={`receipt-item ${!it.selected ? 'deselected' : ''}`}>
-                <input type="checkbox" checked={it.selected} onChange={() => toggle(i)} />
-                <input className="receipt-name-input" value={it.name} onChange={(e) => setName(i, e.target.value)} />
-                <input type="date" className="receipt-expiry-input" value={it.expiryDate} onChange={(e) => setExpiry(i, e.target.value)} />
+                <input type="checkbox" checked={it.selected} onChange={() => toggle(i)} aria-label={t('receipt.include', { name: it.name })} />
+                <input className="receipt-name-input" value={it.name} onChange={(e) => setName(i, e.target.value)} aria-label={t('receipt.nameFor', { n: i + 1 })} />
+                <input type="date" className="receipt-expiry-input" value={it.expiryDate} onChange={(e) => setExpiry(i, e.target.value)} aria-label={t('receipt.expiryFor', { name: it.name })} />
                 <span className="receipt-price">€{Number(it.price).toFixed(2)}</span>
-                <button className="btn-icon btn-icon--danger" onClick={() => remove(i)}>✕</button>
+                <button type="button" className="btn-icon btn-icon--danger" onClick={() => remove(i)} aria-label={t('receipt.remove', { name: it.name })}><CloseIcon size={18} /></button>
               </div>
             ))}
           </div>
 
           {selected.length > 0 && (
             <div className="form-actions">
-              <button className="btn btn-ghost" onClick={() => navigate('/')}>{t('receipt.back')}</button>
-              <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+              <button type="button" className="btn btn-ghost" onClick={() => navigate('/')}>{t('receipt.back')}</button>
+              <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving}>
                 {saving ? t('receipt.saving') : t('receipt.save', { count: selected.length })}
               </button>
             </div>
@@ -258,7 +278,7 @@ export default function ReceiptScanner() {
 
           {rawText && (
             <div style={{ marginTop: '1rem' }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => setShowRaw((v) => !v)}>
+              <button type="button" className="btn btn-ghost btn-sm" aria-expanded={showRaw} onClick={() => setShowRaw((v) => !v)}>
                 {t('receipt.rawText')}
               </button>
               {showRaw && <pre className="raw-text">{rawText}</pre>}

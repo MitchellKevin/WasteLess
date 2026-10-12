@@ -22,6 +22,7 @@ app.use('/api/items', require('./routes/items'))
 app.use('/api/logs', require('./routes/logs'))
 app.use('/api/barcodes', require('./routes/barcodes'))
 app.use('/api/households', require('./routes/households'))
+app.use('/api/billing', require('./routes/billing'))
 
 if (process.env.NODE_ENV === 'production') {
   const dist = path.join(__dirname, '../client/dist')

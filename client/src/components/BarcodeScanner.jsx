@@ -1,5 +1,8 @@
-import { useEffect, useRef } from 'react'
-import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode'
+import { useEffect, useId, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
+import { BarcodeScanner as NativeScanner, BarcodeFormat } from '@capacitor-mlkit/barcode-scanning'
+import { isNative, platform } from '../lib/native'
 
 const BARCODE_FORMATS = [
   Html5QrcodeSupportedFormats.EAN_13,
@@ -10,38 +13,84 @@ const BARCODE_FORMATS = [
   Html5QrcodeSupportedFormats.QR_CODE,
 ]
 
-export default function BarcodeScanner({ onScan }) {
-  const scannerRef = useRef(null)
-  const onScanRef = useRef(onScan)
-  onScanRef.current = onScan
+const NATIVE_FORMATS = [BarcodeFormat.Ean13, BarcodeFormat.Ean8, BarcodeFormat.UpcA, BarcodeFormat.UpcE, BarcodeFormat.Code128, BarcodeFormat.QrCode]
+
+// iOS/Android: the system's full-screen ML Kit scanner
+function NativeBarcodeScanner({ onScan, onCancel }) {
+  const { t } = useTranslation()
+  const [failed, setFailed] = useState('')
+  const handlers = useRef({ onScan, onCancel })
+  handlers.current = { onScan, onCancel }
 
   useEffect(() => {
-    const scanner = new Html5QrcodeScanner(
-      'barcode-reader',
-      {
-        fps: 10,
-        qrbox: { width: 280, height: 120 },
-        formatsToSupport: BARCODE_FORMATS,
-        rememberLastUsedCamera: true,
-      },
-      false
-    )
+    let cancelled = false
+    ;(async () => {
+      try {
+        // Android uses Google's scanner module, which may still need to be downloaded
+        if (platform === 'android') {
+          const { available } = await NativeScanner.isGoogleBarcodeScannerModuleAvailable()
+          if (!available) { await NativeScanner.installGoogleBarcodeScannerModule(); setFailed('installing'); return }
+        }
+        const { barcodes } = await NativeScanner.scan({ formats: NATIVE_FORMATS })
+        if (cancelled) return
+        const code = barcodes[0]?.rawValue
+        if (code) handlers.current.onScan(code)
+        else handlers.current.onCancel?.()
+      } catch (err) {
+        if (cancelled) return
+        // Closing the scanner rejects with a "canceled" error
+        if (/cancel/i.test(err?.message || '')) handlers.current.onCancel?.()
+        else setFailed('error')
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
-    scanner.render(
+  if (failed) return <div className="alert alert-warning" role="alert">{t(failed === 'installing' ? 'scanner.installing' : 'scanner.error')}</div>
+  return <p className="lookup-status" role="status">{t('scanner.opening')}</p>
+}
+
+export default function BarcodeScanner(props) {
+  return isNative ? <NativeBarcodeScanner {...props} /> : <WebBarcodeScanner {...props} />
+}
+
+// Browser: camera-only scanner without html5-qrcode's built-in UI
+function WebBarcodeScanner({ onScan }) {
+  const { t } = useTranslation()
+  const elementId = `barcode-reader-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
+  const onScanRef = useRef(onScan)
+  onScanRef.current = onScan
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    const scanner = new Html5Qrcode(elementId, { formatsToSupport: BARCODE_FORMATS, verbose: false })
+    let done = false
+    const started = scanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 260, height: 110 } },
       (code) => {
-        scanner.clear().catch(() => {})
-        onScanRef.current(code)
+        if (done) return
+        done = true
+        scanner.stop().catch(() => {}).finally(() => onScanRef.current(code))
       },
       () => {}
-    )
+    ).catch(() => setFailed(true))
 
-    scannerRef.current = scanner
-    return () => { scanner.clear().catch(() => {}) }
-  }, [])
+    return () => {
+      done = true
+      started.then(() => (scanner.isScanning ? scanner.stop() : null)).catch(() => {}).finally(() => {
+        try { scanner.clear() } catch {}
+      })
+    }
+  }, [elementId])
+
+  if (failed) return <div className="alert alert-warning" role="alert">{t('scanner.error')}</div>
 
   return (
     <div className="scanner-wrapper">
-      <div id="barcode-reader" />
+      <div id={elementId} className="barcode-reader" />
+      <div className="scanner-frame" aria-hidden="true"><span /><span /><span /><span /></div>
+      <p className="scanner-hint">{t('scanner.hint')}</p>
     </div>
   )
 }

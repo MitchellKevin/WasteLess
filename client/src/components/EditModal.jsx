@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import api from '../api/axios'
+import useDialog from '../hooks/useDialog'
+import { LOCATIONS } from '../lib/items'
+import { CloseIcon } from './Icons'
 
 export default function EditModal({ item, onSave, onClose }) {
   const { t } = useTranslation()
@@ -8,8 +11,11 @@ export default function EditModal({ item, onSave, onClose }) {
     name: item.name, category: item.category || '',
     quantity: item.quantity, unit: item.unit, expiryDate: item.expiryDate.slice(0, 10),
     notes: item.notes || '',
+    location: item.location || 'fridge',
   })
   const [saving, setSaving] = useState(false)
+  const id = useId()
+  const dialogRef = useDialog(onClose)
 
   const set = (k) => (e) =>
     setForm((f) => ({ ...f, [k]: e.target.type === 'number' ? Number(e.target.value) : e.target.value }))
@@ -24,37 +30,51 @@ export default function EditModal({ item, onSave, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`${id}-title`}
+        tabIndex={-1}
+        ref={dialogRef}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-header">
-          <h3>{t('edit.title')}</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <h3 id={`${id}-title`}>{t('edit.title')}</h3>
+          <button type="button" className="btn-icon" onClick={onClose} aria-label={t('edit.close')}><CloseIcon size={20} /></button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>{t('edit.name')}</label>
-            <input type="text" value={form.name} onChange={set('name')} required />
+            <label htmlFor={`${id}-name`}>{t('edit.name')}</label>
+            <input id={`${id}-name`} type="text" value={form.name} onChange={set('name')} required />
           </div>
           <div className="form-group">
-            <label>{t('edit.category')}</label>
-            <input type="text" value={form.category} onChange={set('category')} />
+            <label htmlFor={`${id}-category`}>{t('edit.category')}</label>
+            <input id={`${id}-category`} type="text" value={form.category} onChange={set('category')} />
           </div>
           <div className="form-row">
             <div className="form-group">
-              <label>{t('edit.expiry')}</label>
-              <input type="date" value={form.expiryDate} onChange={set('expiryDate')} required />
+              <label htmlFor={`${id}-expiry`}>{t('edit.expiry')}</label>
+              <input id={`${id}-expiry`} type="date" value={form.expiryDate} onChange={set('expiryDate')} required />
             </div>
             <div className="form-group">
-              <label>{t('edit.quantity')}</label>
-              <input type="number" value={form.quantity} onChange={set('quantity')} min="0" />
+              <label htmlFor={`${id}-qty`}>{t('edit.quantity')}</label>
+              <input id={`${id}-qty`} type="number" inputMode="decimal" value={form.quantity} onChange={set('quantity')} min="0" step="any" />
             </div>
             <div className="form-group">
-              <label>{t('edit.unit')}</label>
-              <input type="text" value={form.unit} onChange={set('unit')} />
+              <label htmlFor={`${id}-unit`}>{t('edit.unit')}</label>
+              <input id={`${id}-unit`} type="text" value={form.unit} onChange={set('unit')} />
             </div>
           </div>
           <div className="form-group">
-            <label>{t('edit.notes')}</label>
-            <textarea value={form.notes} onChange={set('notes')} rows={2} />
+            <label htmlFor={`${id}-location`}>{t('detail.storedIn')}</label>
+            <select id={`${id}-location`} value={form.location} onChange={set('location')}>
+              {LOCATIONS.map((l) => <option key={l} value={l}>{t(`location.${l}`)}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor={`${id}-notes`}>{t('edit.notes')}</label>
+            <textarea id={`${id}-notes`} value={form.notes} onChange={set('notes')} rows={2} />
           </div>
           <div className="form-actions">
             <button type="button" className="btn btn-ghost" onClick={onClose}>{t('edit.cancel')}</button>

@@ -2,6 +2,12 @@ import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import BarcodeScanner from '../components/BarcodeScanner'
+import AddTabs from '../components/AddTabs'
+import { PlusCard } from '../components/PlusGate'
+import { useAuth } from '../context/AuthContext'
+import { isPlus } from '../lib/plan'
+import { CloseIcon, BarcodeIcon } from '../components/Icons'
+import { useTranslation } from 'react-i18next'
 
 async function lookupBarcode(barcode) {
   try {
@@ -38,7 +44,9 @@ const emptyItem = (info = {}) => ({
 })
 
 export default function BulkAdd() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [pending, setPending] = useState([])
   const [current, setCurrent] = useState(null)
   const [scanning, setScanning] = useState(true)
@@ -73,36 +81,53 @@ export default function BulkAdd() {
       await Promise.all(pending.map((item) => api.post('/items', { ...item, price: Number(item.price) || 0 })))
       navigate('/')
     } catch {
-      setError('Some items failed to save. Please try again.')
+      setError(t('bulk.error'))
       setSaving(false)
     }
   }
 
+  if (!isPlus(user)) {
+    return (
+      <div className="add-page">
+        <AddTabs />
+        <PlusCard title={t('plus.gate.bulkTitle')} desc={t('plus.gate.bulkDesc')} />
+      </div>
+    )
+  }
+
   return (
     <div className="add-page">
+      <AddTabs />
       <div className="bulk-header">
-        <h2>Bulk Add</h2>
+        <h2>{t('bulk.title')}</h2>
         {pending.length > 0 && (
-          <button className="btn btn-primary" onClick={saveAll} disabled={saving}>
-            {saving ? 'Saving…' : `Save all (${pending.length})`}
+          <button type="button" className="btn btn-primary" onClick={saveAll} disabled={saving}>
+            {saving ? t('bulk.saving') : t('bulk.saveAll', { count: pending.length })}
           </button>
         )}
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && <div className="alert alert-error" role="alert">{error}</div>}
 
       {scanning && !current && (
         <div className="scan-section">
           {lookingUp ? (
-            <p className="lookup-status">Looking up product…</p>
+            <p className="lookup-status" aria-live="polite">{t('add.lookingUp')}</p>
           ) : (
             <>
-              <BarcodeScanner onScan={handleScan} />
-              <button className="btn btn-ghost btn-sm" onClick={() => setCurrent(emptyItem())}>
-                Add manually instead
+              <BarcodeScanner onScan={handleScan} onCancel={() => setScanning(false)} />
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setCurrent(emptyItem())}>
+                {t('bulk.addManually')}
               </button>
             </>
           )}
+        </div>
+      )}
+
+      {!scanning && !current && (
+        <div className="scan-section">
+          <button type="button" className="btn btn-secondary" onClick={() => setScanning(true)}><BarcodeIcon size={20} />{t('add.scan')}</button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setCurrent(emptyItem())}>{t('bulk.addManually')}</button>
         </div>
       )}
 
@@ -115,57 +140,64 @@ export default function BulkAdd() {
           )}
           <div className="form-row">
             <div className="form-group">
-              <label>Name *</label>
-              <input type="text" value={current.name} onChange={setField('name')} required placeholder="Product name" />
+              <label htmlFor="bulk-name">{t('add.name')} *</label>
+              <input id="bulk-name" type="text" value={current.name} onChange={setField('name')} required placeholder={t('bulk.namePlaceholder')} />
             </div>
             <div className="form-group">
-              <label>Category</label>
-              <input type="text" value={current.category} onChange={setField('category')} placeholder="e.g. Dairy" />
+              <label htmlFor="bulk-category">{t('add.category')}</label>
+              <input id="bulk-category" type="text" value={current.category} onChange={setField('category')} placeholder={t('add.categoryPlaceholder')} />
             </div>
           </div>
           <div className="form-row">
             <div className="form-group">
-              <label>Expiry date *</label>
-              <input type="date" value={current.expiryDate} onChange={setField('expiryDate')} required />
+              <label htmlFor="bulk-expiry">{t('add.expiry')} *</label>
+              <input id="bulk-expiry" type="date" value={current.expiryDate} onChange={setField('expiryDate')} required />
             </div>
             <div className="form-group">
-              <label>Qty</label>
-              <input type="number" value={current.quantity} onChange={setField('quantity')} min="0" />
+              <label htmlFor="bulk-qty">{t('bulk.qty')}</label>
+              <input id="bulk-qty" type="number" inputMode="decimal" value={current.quantity} onChange={setField('quantity')} min="0" step="any" />
             </div>
             <div className="form-group">
-              <label>Unit</label>
-              <input type="text" value={current.unit} onChange={setField('unit')} placeholder="item, L…" />
+              <label htmlFor="bulk-unit">{t('add.unit')}</label>
+              <input id="bulk-unit" type="text" value={current.unit} onChange={setField('unit')} placeholder={t('add.unitPlaceholder')} />
             </div>
             <div className="form-group">
-              <label>Price (€)</label>
-              <input type="number" value={current.price} onChange={setField('price')} min="0" step="0.01" placeholder="0.00" />
+              <label htmlFor="bulk-price">{t('add.price')}</label>
+              <input id="bulk-price" type="number" inputMode="decimal" value={current.price} onChange={setField('price')} min="0" step="0.01" placeholder="0.00" />
             </div>
           </div>
           <div className="form-actions">
             <button type="button" className="btn btn-ghost" onClick={() => { setCurrent(null); setScanning(true) }}>
-              Cancel
+              {t('bulk.cancel')}
             </button>
-            <button type="submit" className="btn btn-primary">Add &amp; scan next</button>
+            <button type="submit" className="btn btn-primary">{t('bulk.addNext')}</button>
           </div>
         </form>
       )}
 
       {pending.length > 0 && (
-        <div className="pending-list">
-          <p className="section-title">Queue ({pending.length})</p>
+        <section className="pending-list" aria-labelledby="bulk-queue">
+          <h3 className="section-title" id="bulk-queue">{t('bulk.queue', { count: pending.length })}</h3>
           {pending.map((item, i) => (
             <div key={i} className="pending-item">
               <div className="pending-info">
-                <span className="pending-name">{item.name || 'Unnamed'}</span>
+                <span className="pending-name">{item.name || t('bulk.unnamed')}</span>
                 <span className="pending-meta">
                   {item.expiryDate} · {item.quantity} {item.unit}
                   {item.price ? ` · €${Number(item.price).toFixed(2)}` : ''}
                 </span>
               </div>
-              <button className="btn-icon btn-icon--danger" onClick={() => removeFromQueue(i)}>✕</button>
+              <button
+                type="button"
+                className="btn-icon btn-icon--danger"
+                onClick={() => removeFromQueue(i)}
+                aria-label={t('bulk.remove', { name: item.name || t('bulk.unnamed') })}
+              >
+                <CloseIcon size={18} />
+              </button>
             </div>
           ))}
-        </div>
+        </section>
       )}
     </div>
   )

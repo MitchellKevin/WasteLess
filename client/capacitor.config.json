@@ -1,0 +1,14 @@
+{
+  "appId": "nl.wasteless.app",
+  "appName": "WasteLess",
+  "webDir": "dist",
+  "backgroundColor": "#F5F2EA",
+  "ios": {
+    "contentInset": "never"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css"
+    }
+  }
+}

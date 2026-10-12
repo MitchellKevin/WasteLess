@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import api from '../api/axios'
+import { CloseIcon } from '../components/Icons'
 
 const MS_PER_DAY = 86400000
 
@@ -13,6 +15,7 @@ function daysUntil(dateStr) {
 }
 
 export default function ShoppingList() {
+  const { t } = useTranslation()
   const [items, setItems] = useState([])
   const [checked, setChecked] = useState({})
   const [custom, setCustom] = useState(() => {
@@ -44,7 +47,7 @@ export default function ShoppingList() {
 
   const toggle = (id) => setChecked((prev) => ({ ...prev, [id]: !prev[id] }))
 
-  if (loading) return <div className="loading">Loading…</div>
+  if (loading) return <div className="loading" role="status">{t('shopping.loading')}</div>
 
   const total = items.length + custom.length
   const done = Object.values(checked).filter(Boolean).length
@@ -52,15 +55,15 @@ export default function ShoppingList() {
   return (
     <div className="page">
       <div className="page-header">
-        <h2>Shopping List</h2>
+        <h2>{t('shopping.title')}</h2>
         {total > 0 && (
-          <span className="item-count">{done}/{total} done</span>
+          <span className="item-count" aria-live="polite">{t('shopping.done', { done, total })}</span>
         )}
       </div>
 
       {items.length > 0 && (
-        <section className="shopping-section">
-          <h3 className="section-title">Needs restocking</h3>
+        <section className="shopping-section" aria-labelledby="shopping-restock">
+          <h3 className="section-title" id="shopping-restock">{t('shopping.needsRestocking')}</h3>
           <ul className="shopping-list">
             {items.map((item) => (
               <li key={item._id} className={`shopping-item ${checked[item._id] ? 'checked' : ''}`}>
@@ -72,7 +75,7 @@ export default function ShoppingList() {
                   />
                   <span className="shopping-name">{item.name}</span>
                   <span className="shopping-reason">
-                    {item.quantity === 0 ? 'out of stock' : 'expired'}
+                    {item.quantity === 0 ? t('shopping.outOfStock') : t('shopping.expired')}
                   </span>
                 </label>
               </li>
@@ -81,16 +84,18 @@ export default function ShoppingList() {
         </section>
       )}
 
-      <section className="shopping-section">
-        <h3 className="section-title">My list</h3>
+      <section className="shopping-section" aria-labelledby="shopping-mine">
+        <h3 className="section-title" id="shopping-mine">{t('shopping.myList')}</h3>
         <form onSubmit={addCustom} className="shopping-add">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Add an item…"
+            placeholder={t('shopping.addPlaceholder')}
+            aria-label={t('shopping.addLabel')}
+            enterKeyHint="done"
           />
-          <button type="submit" className="btn btn-primary btn-sm">Add</button>
+          <button type="submit" className="btn btn-primary btn-sm">{t('shopping.add')}</button>
         </form>
         {custom.length > 0 && (
           <ul className="shopping-list">
@@ -104,7 +109,9 @@ export default function ShoppingList() {
                   />
                   <span className="shopping-name">{c.name}</span>
                 </label>
-                <button className="btn-icon btn-icon--danger" onClick={() => removeCustom(c.id)}>✕</button>
+                <button type="button" className="btn-icon btn-icon--danger" onClick={() => removeCustom(c.id)} aria-label={t('shopping.remove', { name: c.name })}>
+                  <CloseIcon size={18} />
+                </button>
               </li>
             ))}
           </ul>
@@ -113,8 +120,8 @@ export default function ShoppingList() {
 
       {total === 0 && (
         <div className="empty-state">
-          <p>Nothing to buy — your inventory is well stocked!</p>
-          <Link to="/" className="btn btn-primary">View inventory</Link>
+          <p>{t('shopping.empty')}</p>
+          <Link to="/" className="btn btn-primary">{t('shopping.viewInventory')}</Link>
         </div>
       )}
     </div>

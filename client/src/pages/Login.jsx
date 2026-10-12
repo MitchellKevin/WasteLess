@@ -22,18 +22,17 @@ export default function Login() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <div className="auth-logo">🌱</div>
         <h1>{t('auth.welcomeBack')}</h1>
         <p className="auth-subtitle">{t('auth.signInSubtitle')}</p>
-        {error && <div className="alert alert-error">{error}</div>}
+        {error && <div className="alert alert-error" role="alert">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>{t('auth.email')}</label>
-            <input type="email" value={form.email} onChange={set('email')} required autoFocus />
+            <label htmlFor="login-email">{t('auth.email')}</label>
+            <input id="login-email" type="email" inputMode="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={form.email} onChange={set('email')} required autoFocus />
           </div>
           <div className="form-group">
-            <label>{t('auth.password')}</label>
-            <input type="password" value={form.password} onChange={set('password')} required />
+            <label htmlFor="login-password">{t('auth.password')}</label>
+            <input id="login-password" type="password" autoComplete="current-password" value={form.password} onChange={set('password')} required />
           </div>
           <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
             {loading ? t('auth.signingIn') : t('auth.signIn')}

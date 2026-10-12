@@ -1,22 +1,23 @@
 const router = require('express').Router()
 const auth = require('../middleware/auth')
 const Item = require('../models/Item')
-const User = require('../models/User')
-const Household = require('../models/Household')
+const Log = require('../models/Log')
+const householdUserIds = require('../lib/household')
+const estimateKg = require('../lib/weight')
+const { householdHasPlus, FREE_LIMITS } = require('../lib/plan')
 
 router.use(auth)
 
-async function householdUserIds(userId) {
-  const user = await User.findById(userId).select('household')
-  if (!user.household) return [userId]
-  const household = await Household.findById(user.household).select('members')
-  return household ? household.members : [userId]
+// Fields a client may set; `user` always comes from the token
+const pick = (body) => {
+  const allowed = ['name', 'barcode', 'category', 'quantity', 'unit', 'expiryDate', 'imageUrl', 'price', 'notes', 'nutrients', 'location', 'openedAt']
+  return Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
 }
 
 router.get('/', async (req, res) => {
   try {
     const userIds = await householdUserIds(req.user.id)
-    const items = await Item.find({ user: { $in: userIds } }).sort({ expiryDate: 1 })
+    const items = await Item.find({ user: { $in: userIds } }).sort({ expiryDate: 1 }).populate('user', 'name')
     res.json(items)
   } catch (err) {
     res.status(500).json({ message: err.message })
@@ -25,8 +26,18 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const item = await Item.create({ ...req.body, user: req.user.id })
-    res.status(201).json(item)
+    if (!(await householdHasPlus(req.user.id))) {
+      const count = await Item.countDocuments({ user: { $in: await householdUserIds(req.user.id) } })
+      if (count >= FREE_LIMITS.items)
+        return res.status(402).json({ code: 'limit_items', limit: FREE_LIMITS.items, message: `Free plan holds up to ${FREE_LIMITS.items} items` })
+    }
+    const item = await Item.create({ ...pick(req.body), user: req.user.id })
+    await Log.create({
+      user: req.user.id, itemName: item.name, action: 'added',
+      quantity: item.quantity, unit: item.unit, category: item.category,
+      weightKg: estimateKg(item.quantity, item.unit),
+    })
+    res.status(201).json(await item.populate('user', 'name'))
   } catch (err) {
     res.status(400).json({ message: err.message })
   }
@@ -37,9 +48,9 @@ router.patch('/:id', async (req, res) => {
     const userIds = await householdUserIds(req.user.id)
     const item = await Item.findOneAndUpdate(
       { _id: req.params.id, user: { $in: userIds } },
-      req.body,
+      pick(req.body),
       { new: true, runValidators: true }
-    )
+    ).populate('user', 'name')
     if (!item) return res.status(404).json({ message: 'Item not found' })
     res.json(item)
   } catch (err) {

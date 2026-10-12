@@ -2,6 +2,8 @@ const router = require('express').Router()
 const auth = require('../middleware/auth')
 const Household = require('../models/Household')
 const User = require('../models/User')
+const Log = require('../models/Log')
+const { hasPlus, FREE_LIMITS } = require('../lib/plan')
 
 router.use(auth)
 
@@ -21,6 +23,22 @@ router.get('/me', async (req, res) => {
       .populate('members', 'name email')
       .populate('owner', 'name email')
     res.json(household)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// Recent adds, uses, freezes and waste by anyone in the household
+router.get('/activity', async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('household')
+    if (!user.household) return res.json([])
+    const household = await Household.findById(user.household).select('members')
+    const logs = await Log.find({ user: { $in: household.members } })
+      .sort({ createdAt: -1 })
+      .limit(15)
+      .populate('user', 'name')
+    res.json(logs.map((l) => ({ id: l._id, user: l.user, action: l.action, itemName: l.itemName, createdAt: l.createdAt })))
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
@@ -53,6 +71,10 @@ router.post('/join', async (req, res) => {
     if (user.household) return res.status(400).json({ message: 'Already in a household — leave first' })
     const household = await Household.findOne({ inviteCode: req.body.inviteCode?.toUpperCase() })
     if (!household) return res.status(404).json({ message: 'Invalid invite code' })
+    const members = await User.find({ _id: { $in: household.members } }).select('plusUntil')
+    const plus = hasPlus(user) || members.some(hasPlus)
+    if (!plus && household.members.length >= FREE_LIMITS.members)
+      return res.status(402).json({ code: 'limit_members', limit: FREE_LIMITS.members, message: `Free households have up to ${FREE_LIMITS.members} members` })
     if (!household.members.includes(req.user.id)) {
       household.members.push(req.user.id)
       await household.save()

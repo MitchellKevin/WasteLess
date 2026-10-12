@@ -24,22 +24,22 @@ export default function Register() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <div className="auth-logo">🌱</div>
         <h1>{t('auth.createAccount')}</h1>
         <p className="auth-subtitle">{t('auth.startToday')}</p>
-        {error && <div className="alert alert-error">{error}</div>}
+        {error && <div className="alert alert-error" role="alert">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>{t('auth.name')}</label>
-            <input type="text" value={form.name} onChange={set('name')} required autoFocus />
+            <label htmlFor="register-name">{t('auth.name')}</label>
+            <input id="register-name" type="text" autoComplete="name" value={form.name} onChange={set('name')} required autoFocus />
           </div>
           <div className="form-group">
-            <label>{t('auth.email')}</label>
-            <input type="email" value={form.email} onChange={set('email')} required />
+            <label htmlFor="register-email">{t('auth.email')}</label>
+            <input id="register-email" type="email" inputMode="email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={form.email} onChange={set('email')} required />
           </div>
           <div className="form-group">
-            <label>{t('auth.password')}</label>
-            <input type="password" value={form.password} onChange={set('password')} required minLength={6} />
+            <label htmlFor="register-password">{t('auth.password')}</label>
+            <input id="register-password" type="password" autoComplete="new-password" value={form.password} onChange={set('password')} required minLength={6} aria-describedby="register-password-hint" />
+            <span className="form-hint" id="register-password-hint">{t('auth.minPassword')}</span>
           </div>
           <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
             {loading ? t('auth.creating') : t('auth.createAccount')}

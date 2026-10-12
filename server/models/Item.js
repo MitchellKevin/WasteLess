@@ -12,6 +12,8 @@ const itemSchema = new mongoose.Schema(
     imageUrl: { type: String },
     price: { type: Number, default: 0, min: 0 },
     notes: { type: String, trim: true, default: '' },
+    location: { type: String, enum: ['fridge', 'freezer', 'cupboard'], default: 'fridge' },
+    openedAt: { type: Date, default: null },
     nutrients: {
       calories: Number,
       protein: Number,

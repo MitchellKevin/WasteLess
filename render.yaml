@@ -11,3 +11,7 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: REVENUECAT_SECRET_KEY
+        sync: false
+      - key: REVENUECAT_WEBHOOK_AUTH
+        sync: false

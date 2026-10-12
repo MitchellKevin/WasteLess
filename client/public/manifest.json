@@ -4,8 +4,8 @@
   "description": "Track your food inventory and reduce waste",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f9fafb",
-  "theme_color": "#16a34a",
+  "background_color": "#F5F2EA",
+  "theme_color": "#1F5A3C",
   "icons": [
     {
       "src": "/icon.svg",

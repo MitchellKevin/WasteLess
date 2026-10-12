@@ -1,20 +1,29 @@
 import { useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import api from '../api/axios'
 import { lookupBarcode } from '../api/lookup'
 import BarcodeScanner from '../components/BarcodeScanner'
+import AddTabs from '../components/AddTabs'
+import { LOCATIONS, formatDate } from '../lib/items'
+import { BarcodeIcon } from '../components/Icons'
+import { PlusCard } from '../components/PlusGate'
 
-const EMPTY = { name: '', barcode: '', category: '', quantity: 1, unit: 'item', expiryDate: '', imageUrl: '', price: '', notes: '', nutrients: null }
+const EMPTY = { name: '', barcode: '', category: '', quantity: 1, unit: 'item', expiryDate: '', imageUrl: '', price: '', notes: '', nutrients: null, location: 'fridge' }
+const QUICK_DAYS = [3, 7, 14]
+const inDays = (n) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10)
 
 export default function AddItem() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
-  const [form, setForm] = useState(EMPTY)
-  const [scanning, setScanning] = useState(false)
+  const [params] = useSearchParams()
+  const [form, setForm] = useState(() => ({ ...EMPTY, expiryDate: inDays(7) }))
+  const [scanning, setScanning] = useState(params.get('scan') === '1')
+  const [pickDate, setPickDate] = useState(false)
   const [lookingUp, setLookingUp] = useState(false)
   const [cacheHit, setCacheHit] = useState(false)
   const [error, setError] = useState('')
+  const [limitReached, setLimitReached] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const set = (k) => (e) =>
@@ -32,70 +41,105 @@ export default function AddItem() {
   }, [])
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setError(''); setSaving(true)
+    e.preventDefault(); setError('')
+    if (!form.expiryDate) { setError(t('add.expiryRequired')); return }
+    setSaving(true)
     try {
       await api.post('/items', { ...form, price: Number(form.price) || 0 })
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.message || t('common.error'))
+      if (err.response?.data?.code === 'limit_items') setLimitReached(err.response.data.limit)
+      else setError(err.response?.data?.message || t('common.error'))
     } finally { setSaving(false) }
   }
 
   return (
     <div className="add-page">
+      <AddTabs />
       <h2>{t('add.title')}</h2>
       <div className="scan-section">
         {!scanning ? (
-          <button className="btn btn-secondary" onClick={() => setScanning(true)}>{t('add.scan')}</button>
+          <button type="button" className="btn btn-secondary" onClick={() => setScanning(true)}><BarcodeIcon size={20} />{t('add.scan')}</button>
         ) : (
-          <div>
-            <BarcodeScanner onScan={handleScan} />
-            <button className="btn btn-ghost btn-sm" onClick={() => setScanning(false)}>{t('add.cancelScan')}</button>
-          </div>
+          <>
+            <BarcodeScanner onScan={handleScan} onCancel={() => setScanning(false)} />
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setScanning(false)}>{t('add.cancelScan')}</button>
+          </>
         )}
-        {lookingUp && <p className="lookup-status">{t('add.lookingUp')}</p>}
-        {cacheHit && !lookingUp && form.name && <p className="lookup-status lookup-cached">{t('add.cached')}</p>}
+        <div aria-live="polite">
+          {lookingUp && <p className="lookup-status">{t('add.lookingUp')}</p>}
+          {cacheHit && !lookingUp && form.name && <p className="lookup-status lookup-cached">{t('add.cached')}</p>}
+        </div>
       </div>
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && <div className="alert alert-error" role="alert">{error}</div>}
+      {limitReached && <PlusCard title={t('plus.gate.itemsTitle', { count: limitReached })} desc={t('plus.gate.itemsDesc')} />}
       <form onSubmit={handleSubmit} className="item-form">
         <div className="form-row">
           <div className="form-group">
-            <label>{t('add.name')} *</label>
-            <input type="text" value={form.name} onChange={set('name')} required placeholder={t('add.namePlaceholder')} />
+            <label htmlFor="add-name">{t('add.name')} *</label>
+            <input id="add-name" type="text" value={form.name} onChange={set('name')} required placeholder={t('add.namePlaceholder')} />
           </div>
           <div className="form-group">
-            <label>{t('add.category')}</label>
-            <input type="text" value={form.category} onChange={set('category')} placeholder={t('add.categoryPlaceholder')} />
+            <label htmlFor="add-category">{t('add.category')}</label>
+            <input id="add-category" type="text" value={form.category} onChange={set('category')} placeholder={t('add.categoryPlaceholder')} />
           </div>
         </div>
+        <fieldset className="form-group">
+          <legend className="form-legend">{t('add.expiry')} *</legend>
+          <div className="chip-row">
+            {QUICK_DAYS.map((n) => (
+              <button key={n} type="button" className={`chip${!pickDate && form.expiryDate === inDays(n) ? ' active' : ''}`}
+                aria-pressed={!pickDate && form.expiryDate === inDays(n)}
+                onClick={() => { setPickDate(false); setForm((f) => ({ ...f, expiryDate: inDays(n) })) }}>
+                {n % 7 === 0 ? t('add.quickWeeks', { count: n / 7 }) : t('add.quickDays', { count: n })}
+              </button>
+            ))}
+            <button type="button" className={`chip${pickDate ? ' active' : ''}`} aria-pressed={pickDate} onClick={() => setPickDate(true)}>
+              {t('add.pickDate')}
+            </button>
+          </div>
+          {pickDate ? (
+            <input id="add-expiry" type="date" aria-label={t('add.expiry')} value={form.expiryDate} onChange={set('expiryDate')} required />
+          ) : (
+            form.expiryDate && <span className="form-hint">{formatDate(form.expiryDate, i18n.language, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+          )}
+        </fieldset>
+        <fieldset className="form-group">
+          <legend className="form-legend">{t('detail.storedIn')}</legend>
+          <div className="chip-row" role="radiogroup" aria-label={t('detail.storedIn')}>
+            {LOCATIONS.map((l) => (
+              <button key={l} type="button" role="radio" aria-checked={form.location === l}
+                className={`chip${form.location === l ? ' active' : ''}`}
+                onClick={() => setForm((f) => ({ ...f, location: l }))}>
+                {t(`location.${l}`)}
+              </button>
+            ))}
+          </div>
+        </fieldset>
         <div className="form-row">
           <div className="form-group">
-            <label>{t('add.expiry')} *</label>
-            <input type="date" value={form.expiryDate} onChange={set('expiryDate')} required />
+            <label htmlFor="add-qty">{t('add.quantity')}</label>
+            <input id="add-qty" type="number" inputMode="decimal" value={form.quantity} onChange={set('quantity')} min="0" step="any" />
           </div>
           <div className="form-group">
-            <label>{t('add.quantity')}</label>
-            <input type="number" value={form.quantity} onChange={set('quantity')} min="0" />
+            <label htmlFor="add-unit">{t('add.unit')}</label>
+            <input id="add-unit" type="text" value={form.unit} onChange={set('unit')} placeholder={t('add.unitPlaceholder')} />
           </div>
           <div className="form-group">
-            <label>{t('add.unit')}</label>
-            <input type="text" value={form.unit} onChange={set('unit')} placeholder={t('add.unitPlaceholder')} />
-          </div>
-          <div className="form-group">
-            <label>{t('add.price')}</label>
-            <input type="number" value={form.price} onChange={set('price')} min="0" step="0.01" placeholder="0.00" />
+            <label htmlFor="add-price">{t('add.price')}</label>
+            <input id="add-price" type="number" inputMode="decimal" value={form.price} onChange={set('price')} min="0" step="0.01" placeholder="0.00" />
           </div>
         </div>
         {form.barcode && (
           <div className="form-group">
-            <label>{t('add.barcode')}</label>
-            <input type="text" value={form.barcode} onChange={set('barcode')} />
+            <label htmlFor="add-barcode">{t('add.barcode')}</label>
+            <input id="add-barcode" type="text" inputMode="numeric" value={form.barcode} onChange={set('barcode')} />
           </div>
         )}
-        {form.imageUrl && <div className="product-preview"><img src={form.imageUrl} alt="Product" /></div>}
+        {form.imageUrl && <div className="product-preview"><img src={form.imageUrl} alt={form.name || t('add.title')} /></div>}
         <div className="form-group">
-          <label>{t('add.notes')}</label>
-          <textarea value={form.notes} onChange={set('notes')} placeholder={t('add.notesPlaceholder')} rows={2} />
+          <label htmlFor="add-notes">{t('add.notes')}</label>
+          <textarea id="add-notes" value={form.notes} onChange={set('notes')} placeholder={t('add.notesPlaceholder')} rows={2} />
         </div>
         <div className="form-actions">
           <button type="button" className="btn btn-ghost" onClick={() => navigate('/')}>{t('add.cancel')}</button>
