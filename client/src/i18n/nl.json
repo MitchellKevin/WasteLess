@@ -329,7 +329,17 @@
     "hint": "Houd een barcode binnen het kader",
     "error": "Camera niet beschikbaar. Geef cameratoegang in je browserinstellingen, of voer het item handmatig in.",
     "opening": "Scanner openen…",
-    "installing": "De barcodescanner wordt geïnstalleerd. Probeer het zo opnieuw."
+    "installing": "De barcodescanner wordt geïnstalleerd. Probeer het zo opnieuw.",
+    "starting": "Camera starten…",
+    "waitingPermission": "Geef je browser toegang tot de camera om barcodes te scannen.",
+    "retry": "Opnieuw proberen",
+    "problem": {
+      "denied": "Cameratoegang is geblokkeerd voor WasteLess. Sta het toe in de site-instellingen van je browser (het icoon links van de adresbalk) en probeer het opnieuw.",
+      "notFound": "Er is geen camera gevonden op dit apparaat. Voer het product handmatig in.",
+      "busy": "De camera wordt gebruikt door een andere app (bijvoorbeeld een videogesprek). Sluit die en probeer het opnieuw.",
+      "insecure": "De camera werkt alleen via een beveiligde verbinding. Open WasteLess via het https-adres (of localhost op deze computer).",
+      "error": "De camera kon niet worden gestart. Probeer het opnieuw, of voer het product handmatig in."
+    }
   },
   "settings": {
     "title": "Instellingen",

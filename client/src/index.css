@@ -373,11 +373,11 @@ button, input, select, textarea { font-family: inherit; }
 .scan-section { margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px; align-items: stretch; }
 .scanner-wrapper {
   position: relative; width: 100%; min-height: 220px;
-  border-radius: var(--radius-lg); overflow: hidden; background: #1C2B22;
+  border-radius: var(--radius-lg); overflow: hidden; background: #111;
 }
 .barcode-reader { width: 100%; }
 .barcode-reader video { display: block; width: 100% !important; height: auto !important; }
-.barcode-reader #qr-shaded-region { border-color: rgba(28, 43, 34, .55) !important; }
+.barcode-reader #qr-shaded-region { border-color: rgba(0, 0, 0, .35) !important; }
 .barcode-reader #qr-shaded-region > div { display: none !important; }
 .scanner-frame {
   position: absolute; left: 50%; top: 50%; width: 260px; height: 110px;
@@ -1029,6 +1029,13 @@ button.settings-row:first-child { border-top: none; }
 .legal-section p { line-height: 1.6; color: var(--text-body); }
 .auth-terms { text-align: center; font-size: 0.8125rem; color: var(--text-muted); margin-top: 16px; line-height: 1.5; }
 .auth-terms a { color: var(--primary-text); font-weight: 700; }
+
+/* Scanner states before the camera image appears */
+.scanner-status {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center;
+  padding: 24px; color: #E8E4DA; font-size: 0.9375rem; font-weight: 500;
+}
+.scanner-problem { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 
 /* ── Smart expiry dates ── */
 .smart-hint { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; font-size: 0.8125rem; color: var(--ok-text); font-weight: 500; }

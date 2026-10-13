@@ -325,7 +325,17 @@
     "hint": "Hold a barcode inside the frame",
     "error": "Camera unavailable. Allow camera access in your browser settings, or enter the item manually.",
     "opening": "Opening the scanner…",
-    "installing": "The barcode scanner is being installed. Try again in a moment."
+    "installing": "The barcode scanner is being installed. Try again in a moment.",
+    "starting": "Starting the camera…",
+    "waitingPermission": "Allow camera access in your browser to scan barcodes.",
+    "retry": "Try again",
+    "problem": {
+      "denied": "Camera access is blocked for WasteLess. Allow it in your browser's site settings (the icon left of the address bar), then try again.",
+      "notFound": "No camera was found on this device. Enter the product by hand instead.",
+      "busy": "The camera is being used by another app (for example a video call). Close it and try again.",
+      "insecure": "The camera only works on a secure connection. Open WasteLess via its https address (or localhost on this computer).",
+      "error": "The camera couldn't be started. Try again, or enter the product by hand."
+    }
   },
   "settings": {
     "title": "Settings",
